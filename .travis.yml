@@ -1,0 +1,49 @@
+language: c
+before_install:
+  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_1.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :1 -ac -screen 0 1280x1024x16"
+  - sleep 3
+  - export DISPLAY=:1.0
+  - wget http://downloads.arduino.cc/arduino-1.8.5-linux64.tar.xz
+  - tar xf arduino-1.8.5-linux64.tar.xz
+  - sudo mv arduino-1.8.5 /usr/local/share/arduino
+  - sudo ln -s /usr/local/share/arduino/arduino /usr/local/bin/arduino
+
+  - git submodule add https://github.com/MicroControllerTeamProject/Libraries $PWD/BasicPortableAlarmSystem/Libraries
+
+  
+
+  - cp --verbose $PWD/BasicPortableAlarmSystem/Libraries/OneWire/*.h $PWD/BasicPortableAlarmSystem
+
+  - cp --verbose $PWD/BasicPortableAlarmSystem/Libraries/OneWire/*.cpp $PWD/BasicPortableAlarmSystem
+
+  - cp --verbose $PWD/BasicPortableAlarmSystem/Libraries/LiquidCrystal_I2C/*.h $PWD/BasicPortableAlarmSystem
+
+  - cp --verbose $PWD/BasicPortableAlarmSystem/Libraries/LiquidCrystal_I2C/*.cpp $PWD/BasicPortableAlarmSystem
+
+  - cp --verbose $PWD/BasicPortableAlarmSystem/Libraries/LSGEEPromRW/*.h $PWD/BasicPortableAlarmSystem
+
+  - cp --verbose $PWD/BasicPortableAlarmSystem/Libraries/LSGEEPromRW/*.cpp $PWD/BasicPortableAlarmSystem
+
+  - cp $PWD/BasicPortableAlarmSystem/Libraries/LSG_ActivityManager/*.h $PWD/BasicPortableAlarmSystem
+  - cp $PWD/BasicPortableAlarmSystem/Libraries/LSG_ActivityManager/*.cpp $PWD/BasicPortableAlarmSystem
+
+  - cp $PWD/BasicPortableAlarmSystem/Libraries/LSG_Utils/*.h $PWD/BasicPortableAlarmSystem
+
+  - cp $PWD/BasicPortableAlarmSystem/Libraries/LSG_Utils/*.cpp $PWD/BasicPortableAlarmSystem
+  - cp $PWD/BasicPortableAlarmSystem/Libraries/analogReadXXbit/*.h $PWD/BasicPortableAlarmSystem 
+
+  - cp $PWD/BasicPortableAlarmSystem/Libraries/analogReadXXbit/*.cpp $PWD/BasicPortableAlarmSystem
+
+  - cp $PWD/BasicPortableAlarmSystem/Libraries/MyBlueTooth/*.h $PWD/BasicPortableAlarmSystem
+  - cp $PWD/BasicPortableAlarmSystem/Libraries/MyBlueTooth/*.cpp $PWD/BasicPortableAlarmSystem
+  - cp $PWD/BasicPortableAlarmSystem/Libraries/BlueToothDynamicInterface/*.h $PWD/BasicPortableAlarmSystem
+  - cp $PWD/BasicPortableAlarmSystem/Libraries/BlueToothDynamicInterface/*.cpp $PWD/BasicPortableAlarmSystem
+
+
+ 
+script:
+  - arduino --verbose-build --verify --board arduino:avr:uno $PWD/BasicPortableAlarmSystem/PortableAlarmSystem.ino
+notifications:
+  email: 
+    on_success: change 
+    on_failure: change

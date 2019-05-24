@@ -1,0 +1,128 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2027
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PortableAlarmSystem", "BasicPortableAlarmSystem\BasicPortableAlarmSystem.vcxproj", "{ACD1CD00-2D74-4298-85AA-96284F0E90C9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{62142BBE-1833-483D-8F24-5D4523907830}"
+	ProjectSection(SolutionItems) = preProject
+		.travis.yml = .travis.yml
+		..\Libraries\LSG_ActivityManager\ActivityManager.cpp = ..\Libraries\LSG_ActivityManager\ActivityManager.cpp
+		..\Libraries\LSG_ActivityManager\ActivityManager.h = ..\Libraries\LSG_ActivityManager\ActivityManager.h
+		..\Libraries\LSG_Utils\MySim900.cpp = ..\Libraries\LSG_Utils\MySim900.cpp
+		..\Libraries\LSG_Utils\MySim900.h = ..\Libraries\LSG_Utils\MySim900.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{8AB27E48-E1BF-4462-9648-C192228D4AD8}"
+	ProjectSection(SolutionItems) = preProject
+		Documents\PortableAlarm.docx = Documents\PortableAlarm.docx
+		Documents\Richiesta.txt = Documents\Richiesta.txt
+		Documents\Speek.docx = Documents\Speek.docx
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "images", "images", "{20BCCE20-C908-48F6-BD16-AC2749927EDB}"
+	ProjectSection(SolutionItems) = preProject
+		Documents\images\1.png = Documents\images\1.png
+		Documents\images\1A.png = Documents\images\1A.png
+		Documents\images\1A.tif = Documents\images\1A.tif
+		Documents\images\1B.tif = Documents\images\1B.tif
+		Documents\images\Presentation\images\1Bluetooth.tif = Documents\images\Presentation\images\1Bluetooth.tif
+		Documents\images\Presentation\images\1Flame.tif = Documents\images\Presentation\images\1Flame.tif
+		Documents\images\Presentation\images\1Gas.tif = Documents\images\Presentation\images\1Gas.tif
+		Documents\images\Presentation\images\1Smoke.tif = Documents\images\Presentation\images\1Smoke.tif
+		Documents\images\Presentation\images\1Temp.tif = Documents\images\Presentation\images\1Temp.tif
+		Documents\images\Presentation\images\1Temperature.tif = Documents\images\Presentation\images\1Temperature.tif
+		Documents\images\Presentation\images\1Termomrtro.tif = Documents\images\Presentation\images\1Termomrtro.tif
+		Documents\images\2.png = Documents\images\2.png
+		Documents\images\2.tif = Documents\images\2.tif
+		Documents\images\Presentation\images\2B.tif = Documents\images\Presentation\images\2B.tif
+		Documents\images\Presentation\images\2C.tif = Documents\images\Presentation\images\2C.tif
+		Documents\images\Presentation\images\2D.tif = Documents\images\Presentation\images\2D.tif
+		Documents\images\3.png = Documents\images\3.png
+		Documents\images\4.png = Documents\images\4.png
+		Documents\images\5.png = Documents\images\5.png
+		Documents\images\Presentation\images\arrow.jpg = Documents\images\Presentation\images\arrow.jpg
+		Documents\images\Presentation\images\arrow.png = Documents\images\Presentation\images\arrow.png
+		Documents\images\Presentation\images\bicicle.bmp = Documents\images\Presentation\images\bicicle.bmp
+		Documents\images\Presentation\images\bicicle.tif = Documents\images\Presentation\images\bicicle.tif
+		Documents\images\Presentation\images\bicicle1.tif = Documents\images\Presentation\images\bicicle1.tif
+		Documents\images\Presentation\images\bluetooth.jpg = Documents\images\Presentation\images\bluetooth.jpg
+		Documents\images\Presentation\images\cellstop.tif = Documents\images\Presentation\images\cellstop.tif
+		Documents\images\Presentation\images\cellular stop.jpg = Documents\images\Presentation\images\cellular stop.jpg
+		Documents\images\Presentation\images\ConfigurationMenu.png = Documents\images\Presentation\images\ConfigurationMenu.png
+		Documents\images\Presentation\images\find phone.png = Documents\images\Presentation\images\find phone.png
+		Documents\images\Presentation\images\fingerprint.jpg.png = Documents\images\Presentation\images\fingerprint.jpg.png
+		Documents\images\Presentation\images\fingerprint.tif = Documents\images\Presentation\images\fingerprint.tif
+		Documents\images\Presentation\images\fingerprint1.tif = Documents\images\Presentation\images\fingerprint1.tif
+		Documents\images\Presentation\images\flame.jpg = Documents\images\Presentation\images\flame.jpg
+		Documents\images\Presentation\images\freccia.tif = Documents\images\Presentation\images\freccia.tif
+		Documents\images\Presentation\images\GarageDoor.png = Documents\images\Presentation\images\GarageDoor.png
+		Documents\images\Presentation\images\gas.bmp = Documents\images\Presentation\images\gas.bmp
+		Documents\images\Presentation\images\gas.jpg = Documents\images\Presentation\images\gas.jpg
+		Documents\images\Presentation\images\lamp.png = Documents\images\Presentation\images\lamp.png
+		Documents\images\Presentation\images\lamp.tif = Documents\images\Presentation\images\lamp.tif
+		Documents\images\Presentation\images\lamp1.tif = Documents\images\Presentation\images\lamp1.tif
+		Documents\images\Presentation\images\MainMenu.png = Documents\images\Presentation\images\MainMenu.png
+		Documents\images\Presentation\images\maps.png = Documents\images\Presentation\images\maps.png
+		Documents\images\Presentation\images\maps.tif = Documents\images\Presentation\images\maps.tif
+		Documents\images\Presentation\images\parti umane.jpg = Documents\images\Presentation\images\parti umane.jpg
+		Documents\images\Presentation\images\phone finder.tif = Documents\images\Presentation\images\phone finder.tif
+		Documents\images\Presentation\images\phone.jpg = Documents\images\Presentation\images\phone.jpg
+		Documents\images\Presentation\images\phone.png = Documents\images\Presentation\images\phone.png
+		Documents\images\Presentation\images\phone.tif = Documents\images\Presentation\images\phone.tif
+		Documents\images\Presentation\images\pir.jpg = Documents\images\Presentation\images\pir.jpg
+		Documents\images\Presentation\images\Pir.tif = Documents\images\Presentation\images\Pir.tif
+		Documents\images\Presentation\images\realy.jpg = Documents\images\Presentation\images\realy.jpg
+		Documents\images\Presentation\images\relay.tif = Documents\images\Presentation\images\relay.tif
+		Documents\images\Presentation\images\robber.jpg = Documents\images\Presentation\images\robber.jpg
+		Documents\images\Presentation\images\robber.tif = Documents\images\Presentation\images\robber.tif
+		Documents\images\Presentation\images\seggiolone.gif = Documents\images\Presentation\images\seggiolone.gif
+		Documents\images\Presentation\images\seggiolone.jpg = Documents\images\Presentation\images\seggiolone.jpg
+		Documents\images\Presentation\images\seggiolone.tif = Documents\images\Presentation\images\seggiolone.tif
+		Documents\images\Presentation\images\smoke.jpg = Documents\images\Presentation\images\smoke.jpg
+		Documents\images\Presentation\images\smoke.png = Documents\images\Presentation\images\smoke.png
+		Documents\images\Presentation\images\tapparella.jpg = Documents\images\Presentation\images\tapparella.jpg
+		Documents\images\Presentation\images\tapparelle.tif = Documents\images\Presentation\images\tapparelle.tif
+		Documents\images\Presentation\images\tapparelle1.tif = Documents\images\Presentation\images\tapparelle1.tif
+		Documents\images\Presentation\images\temperature.jpg = Documents\images\Presentation\images\temperature.jpg
+		Documents\images\Presentation\images\termometro.jpg = Documents\images\Presentation\images\termometro.jpg
+		Documents\images\Presentation\images\userwithphone.jpg = Documents\images\Presentation\images\userwithphone.jpg
+		Documents\images\Presentation\images\userwithphone.png = Documents\images\Presentation\images\userwithphone.png
+		Documents\images\Presentation\images\userwithphone.tif = Documents\images\Presentation\images\userwithphone.tif
+		Documents\images\Presentation\images\userwithphone1.tif = Documents\images\Presentation\images\userwithphone1.tif
+		Documents\images\Presentation\images\valigia.png = Documents\images\Presentation\images\valigia.png
+		Documents\images\Presentation\images\valigia.tif = Documents\images\Presentation\images\valigia.tif
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_library", "_library", "{02ED6CDB-0C8E-45BD-8EC5-ED7F59AE5B93}"
+	ProjectSection(SolutionItems) = preProject
+		..\Libraries\LSG_ActivityManager\ActivityManager.cpp = ..\Libraries\LSG_ActivityManager\ActivityManager.cpp
+		..\Libraries\LSG_ActivityManager\ActivityManager.h = ..\Libraries\LSG_ActivityManager\ActivityManager.h
+		..\Libraries\MyBlueTooth\MyBlueTooth.cpp = ..\Libraries\MyBlueTooth\MyBlueTooth.cpp
+		..\Libraries\MyBlueTooth\MyBlueTooth.h = ..\Libraries\MyBlueTooth\MyBlueTooth.h
+		..\Libraries\LSG_Utils\MySim900.cpp = ..\Libraries\LSG_Utils\MySim900.cpp
+		..\Libraries\LSG_Utils\MySim900.h = ..\Libraries\LSG_Utils\MySim900.h
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ACD1CD00-2D74-4298-85AA-96284F0E90C9}.Debug|x86.ActiveCfg = Debug|Win32
+		{ACD1CD00-2D74-4298-85AA-96284F0E90C9}.Debug|x86.Build.0 = Debug|Win32
+		{ACD1CD00-2D74-4298-85AA-96284F0E90C9}.Release|x86.ActiveCfg = Release|Win32
+		{ACD1CD00-2D74-4298-85AA-96284F0E90C9}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{20BCCE20-C908-48F6-BD16-AC2749927EDB} = {8AB27E48-E1BF-4462-9648-C192228D4AD8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9101B88E-CF44-4A7F-8792-5442455CE859}
+	EndGlobalSection
+EndGlobal
