@@ -19,7 +19,7 @@ void loop(void) {
 	a->print("t08,47.50");
 	a->print("t09,47.50");
 	a->print("t10,48.50");
-	a->print("t11,48.50");
+	/*a->print("t11,48.50");
 	a->print("t12,47.50");
 	a->print("t13,47.50");
 	a->print("t14,48.50");
@@ -29,8 +29,8 @@ void loop(void) {
 	a->print("t18,47.50");
 	a->print("t19,47.50");
 	a->print("t20,48.50");
-	a->print("t21,47.50");
-	a->println("t22,47.50*");
+	a->print("t21,47.50");*/
+	a->println("t11,47.50*");
 	
 	delay(400);
 }

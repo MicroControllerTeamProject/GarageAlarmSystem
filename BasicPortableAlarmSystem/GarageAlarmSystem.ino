@@ -25,7 +25,7 @@ ActivityManager* _delayForFindPhone = new ActivityManager(30);
 
 ActivityManager* _delayForSignalStrength = new ActivityManager(30);
 
-ActivityManager* _delayForGetDataFromExternalDevice = new ActivityManager(30);
+ActivityManager* _delayForGetDataFromExternalDevice = new ActivityManager(120);
 
 MyBlueTooth* btSerial;
 
@@ -77,9 +77,6 @@ const byte _addressStartDeviceAddress2 = 98;
 
 const byte _addressStartDeviceName2 = 110;
 
-const byte _addressStartTemperatureAddressProbe = 125;
-
-//const char f[40] = "0x28,0xFF,0x43,0x07,0x25,0x17,0x03,0xA8";
 
 uint8_t _isPIRSensorActivated = 0;
 
@@ -128,8 +125,6 @@ String _deviceAddress2 = "";
 String _deviceName = "";
 
 String _deviceName2 = "";
-
-String _externalTemperature = "";
 
 float _voltageValue = 0;
 
@@ -192,8 +187,6 @@ char _bufDelayFindMe[BUFSIZEDELAYFINDME];
 const int BUFSIZEEXTERNALINTERRUPTISON = 2;
 char _bufExternalInterruptIsON[BUFSIZEEXTERNALINTERRUPTISON];
 
-const int BUFSIZEEXTERNALTEMPERATURE = 40;
-char _bufExternalTemperature[BUFSIZEEXTERNALTEMPERATURE];
 
 void setSim900()
 {
@@ -328,9 +321,6 @@ void initilizeEEPromData()
 
 	eepromRW->eeprom_read_string(_addressExternalInterruptIsOn, _bufExternalInterruptIsON, BUFSIZEEXTERNALINTERRUPTISON);
 	_isExternalInterruptOn = atoi(&_bufExternalInterruptIsON[0]);
-
-	eepromRW->eeprom_read_string(_addressStartTemperatureAddressProbe, _bufExternalTemperature, BUFSIZEEXTERNALTEMPERATURE);
-	_externalTemperature = String(_bufExternalTemperature);
 
 	delete(eepromRW);
 
