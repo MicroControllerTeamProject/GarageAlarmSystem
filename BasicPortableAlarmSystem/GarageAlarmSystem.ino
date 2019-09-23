@@ -25,7 +25,7 @@ ActivityManager* _delayForFindPhone = new ActivityManager(30);
 
 ActivityManager* _delayForSignalStrength = new ActivityManager(30);
 
-ActivityManager* _delayForGetDataFromExternalDevice = new ActivityManager(120);
+ActivityManager* _delayForGetDataFromExternalDevice = new ActivityManager(30);
 
 MyBlueTooth* btSerial;
 
@@ -579,12 +579,15 @@ void loop()
 		delete mySim900;
 		SoftwareSerial a = SoftwareSerial(5, 12);
 		a.begin(9600);
+		a.readStringUntil('*');
+		a.flush();
 		delay(500);
 		if (a.available() > 0)
 		{
 			Serial.println(a.readStringUntil('*'));
 
 		}
+		
 		setSim900();
 	}
 
@@ -1483,7 +1486,7 @@ void readIncomingSMS()
 	{
 		String response = mySim900->ReadIncomingChars2();
 		delay(500);
-		Serial.print("####"); Serial.print(response); Serial.println("####");
+		//Serial.print("####"); Serial.print(response); Serial.println("####");
 		response.trim();
 		//if (response.substring(0, 5) == F("+CMT:"))
 		//if (response.indexOf("+CMT:") != -1)
@@ -1491,8 +1494,8 @@ void readIncomingSMS()
 		{
 			blinkLed();
 
-			Serial.println(response.substring(51, 61));
-			Serial.println(response.substring(36, 46));
+			/*Serial.println(response.substring(51, 61));
+			Serial.println(response.substring(36, 46));*/
 
 			if (response.substring(36, 46) != _phoneNumber &&
 				response.substring(51, 61) != _phoneNumber &&
