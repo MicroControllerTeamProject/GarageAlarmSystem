@@ -11,9 +11,10 @@
 #include "BlueToothCommandsUtil.h"
 #include "LSGEEpromRW.h" 
 #include <EEPROM.h> 
-//#include <StringFunctions.h>
+#include <StringFunctions.h>
 #include "MySim900.h"
 #include "ActivityManager.h"
+
 
 char version[15] = "-G01 1.00-alfa";
 
@@ -25,7 +26,7 @@ ActivityManager* _delayForFindPhone = new ActivityManager(30);
 
 ActivityManager* _delayForSignalStrength = new ActivityManager(30);
 
-ActivityManager* _delayForGetDataFromExternalDevice = new ActivityManager(120);
+ActivityManager* _delayForGetDataFromExternalDevice = new ActivityManager(30);
 
 MyBlueTooth* btSerial;
 
@@ -558,7 +559,6 @@ bool isFindOutPhonesONAndSetBluetoothInMasterMode()
 	}
 }
 
-
 void loop()
 {
 
@@ -574,10 +574,22 @@ void loop()
 		delay(500);
 		if (a.available() > 0)
 		{
-			Serial.println(a.readStringUntil('*'));
-
+			String a1 = a.readStringUntil('*');
+			a1.trim();
+			Serial.println(a1);
+			
+			for (int i = 0; i < a1.length(); i+=9)
+			{
+				//Serial.println(i);
+				//Serial.println(a1.substring(i, i+9));
+				
+				Serial.print("Device name : "); Serial.println(splitStringIndex(a1.substring(i, i + 9), ',', 0));
+				Serial.print("Device message :"); Serial.println(splitStringIndex(a1.substring(i, i + 9), ',', 1));
+				
+			}
+			
+			//Serial.println(a.readStringUntil('*'));
 		}
-		
 		setSim900();
 	}
 
