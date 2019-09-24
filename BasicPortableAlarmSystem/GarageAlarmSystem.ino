@@ -1,3 +1,41 @@
+/* Know Your SRAM
+
+This little sketch prints on the serial monitor
+the boundaries of .data and .bss memory areas,
+of the Heap and the Stack and the amount of
+free memory.
+
+Main code from Leonardo Miliani:
+www.leonardomiliani.com
+
+freeRam() agorithm from JeeLabs:
+http://jeelabs.org/2011/05/22/atmega-memory-use/
+
+This code is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public
+License as published by the Free Software Foundation; either
+version 3.0 of the License, or (at your option) any later version.
+
+This code is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+Reviewed on 26/03/2013
+
+*/
+
+//for some MCUs (i.e. the ATmega2560) there's no definition for RAMSTART
+#ifndef RAMSTART
+extern int __data_start;
+#endif
+
+extern int __data_end;
+//extern int __bss_start;
+//extern int __bss_end;
+extern int __heap_start;
+extern int __brkval;
+int temp;
+
 
 #if (defined(__AVR__))
 #include <avr/pgmspace.h>
@@ -562,8 +600,29 @@ bool isFindOutPhonesONAndSetBluetoothInMasterMode()
 void loop()
 {
 
-	//testForTiltSensor()
-	//return;
+	//this is necessary to wait for the Arduino Leonardo to get the serial interface up and running
+#if defined(__ATmega32U4__)
+	while (!Serial);
+#else
+	delay(2000);
+#endif
+
+#ifndef RAMSTART
+	serialPrint("SRAM and .data space start: ", (int)&__data_start);
+#else
+	serialPrint("SRAM and .data space start: ", RAMSTART);
+#endif
+	serialPrint(".data space end/.bss start: ", (int)&__data_end); //same as "(int)&__bss_start)"
+	serialPrint(".bss space end/HEAP start: ", (int)&__heap_start); //same as "(int)&__bss_end);"
+	serialPrint("HEAP end: ", (int)__brkval);
+	int tempRam = freeRam();
+	serialPrint("STACK start: ", temp);
+	serialPrint("STACK and SRAM end: ", RAMEND);
+	serialPrint("Free memory at the moment: ", tempRam);
+	Serial.println("----------------------------------------------------------------------------------");
+
+
+
 	if (_delayForGetDataFromExternalDevice->IsDelayTimeFinished(false))
 	{
 		delete mySim900;
@@ -572,6 +631,7 @@ void loop()
 		a.readStringUntil('*');
 		a.flush();
 		delay(500);
+		//char as[13][5];
 		if (a.available() > 0)
 		{
 			String a1 = a.readStringUntil('*');
@@ -1690,3 +1750,19 @@ double getTemp(void)
 //	// The returned temperature is in degrees Celsius.
 //	return (-(externalTemperature * 1.22) + wADC);
 //}
+
+//print function
+void serialPrint(String tempString, int tempData) {
+	Serial.print(tempString);
+	Serial.print(tempData, DEC);
+	Serial.print(" $");
+	Serial.println(tempData, HEX);
+}
+
+
+//computes the free memory (from JeeLabs)
+int freeRam() {
+	int v;
+	temp = (int)&v;
+	return (int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval);
+}
