@@ -226,6 +226,7 @@ char _bufDelayFindMe[BUFSIZEDELAYFINDME];
 const int BUFSIZEEXTERNALINTERRUPTISON = 2;
 char _bufExternalInterruptIsON[BUFSIZEEXTERNALINTERRUPTISON];
 
+SoftwareSerial a = SoftwareSerial(5, 12);
 
 void setSim900()
 {
@@ -597,9 +598,8 @@ bool isFindOutPhonesONAndSetBluetoothInMasterMode()
 	}
 }
 
-void loop()
+void readMemoryAtRunTime()
 {
-
 	//this is necessary to wait for the Arduino Leonardo to get the serial interface up and running
 #if defined(__ATmega32U4__)
 	while (!Serial);
@@ -620,37 +620,66 @@ void loop()
 	serialPrint("STACK and SRAM end: ", RAMEND);
 	serialPrint("Free memory at the moment: ", tempRam);
 	Serial.println("----------------------------------------------------------------------------------");
+}
 
+char problematicDevice[4];
 
+char problematicDeviceValue[5];
 
+bool chechDevicesValue(char h[100])
+{
+	bool isOnAlarm = false;
+	//Serial.println(h);
+	for (int i = 0; i < 100; i+=9)
+	{
+		int index = 0;
+		//Serial.print("i :"); Serial.println(i);
+		for (int ii = i; ii < i + 4; ii++)
+		{
+			/*Serial.print("ii :"); Serial.println(ii);
+			Serial.print(h[ii]);*/
+			if (h[ii] == 'N')
+			{
+				Serial.print("ALARM DEVICE :");Serial.println(problematicDevice);
+				isOnAlarm = true;
+			}
+			problematicDevice[index] = h[ii];
+			index++;
+		}
+		memset(problematicDevice, 0, sizeof(problematicDevice));
+		//problematicDevice[0] = '\0';
+	}
+	return isOnAlarm;
+}
+
+void loop()
+{
 	if (_delayForGetDataFromExternalDevice->IsDelayTimeFinished(false))
 	{
+		bool isOnAlarm = false;
 		delete mySim900;
-		SoftwareSerial a = SoftwareSerial(5, 12);
 		a.begin(9600);
+		////Pulisco buffer se ci fosse roba
 		a.readStringUntil('*');
 		a.flush();
-		delay(500);
-		//char as[13][5];
+     	delay(500);
 		if (a.available() > 0)
 		{
-			String a1 = a.readStringUntil('*');
-			a1.trim();
-			Serial.println(a1);
-			
-			for (int i = 0; i < a1.length(); i+=9)
-			{
-				//Serial.println(i);
-				//Serial.println(a1.substring(i, i+9));
-				
-				Serial.print("Device name : "); Serial.println(splitStringIndex(a1.substring(i, i + 9), ',', 0));
-				Serial.print("Device message :"); Serial.println(splitStringIndex(a1.substring(i, i + 9), ',', 1));
-				
-			}
-			
-			//Serial.println(a.readStringUntil('*'));
+			char *h = new char[100];
+			a.readStringUntil('*').toCharArray(h,100);
+			/*h = a.readStringUntil('*');
+			htrim();*/
+			isOnAlarm = chechDevicesValue(h);
+			delete[] h;
 		}
+		
 		setSim900();
+
+		if (isOnAlarm)
+		{
+			callSim900();
+		}
+		
 	}
 
 	if (!(_isOnMotionDetect && _isAlarmOn))
@@ -695,14 +724,6 @@ void loop()
 		voltageActivity();
 	}
 
-	/*if (_isPositionEnable)
-	{
-		if (_delayForGetCoordinates->IsDelayTimeFinished(true))
-		{
-			getCoordinates();
-		}
-	}*/
-
 	if (!(_isOnMotionDetect && _isAlarmOn))
 	{
 		pirSensorActivity();
@@ -712,6 +733,7 @@ void loop()
 	{
 		blueToothConfigurationSystem();
 	}
+	readMemoryAtRunTime();
 }
 
 void isMotionDetect()
@@ -884,21 +906,21 @@ void loadMainMenu()
 	//char* commandString = new char[15];
 
 	//String(F("Configuration")).toCharArray(commandString, 15);
-	btSerial->println(BlueToothCommandsUtil::CommandConstructor("Configuration", BlueToothCommandsUtil::Menu, F("001")));
+	btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Configuration"), BlueToothCommandsUtil::Menu, F("001")));
 
-
+	
 	//String(F("Security")).toCharArray(commandString, 15);
-	btSerial->println(BlueToothCommandsUtil::CommandConstructor("Security", BlueToothCommandsUtil::Menu, F("004")));
+	btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Security"), BlueToothCommandsUtil::Menu, F("004")));
 
 	if (!_isAlarmOn)
 	{
 		//String(F("Alarm On")).toCharArray(commandString, 15);
-		btSerial->println(BlueToothCommandsUtil::CommandConstructor("Alarm On", BlueToothCommandsUtil::Command, F("002")));
+		btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Alarm On"), BlueToothCommandsUtil::Command, F("002")));
 	}
 	else
 	{
 		//String(F("Alarm OFF")).toCharArray(commandString, 15);
-		btSerial->println(BlueToothCommandsUtil::CommandConstructor("Alarm OFF", BlueToothCommandsUtil::Command, F("003")));
+		btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Alarm OFF"), BlueToothCommandsUtil::Command, F("003")));
 	}
 
 	//String(F("Temp.:")).toCharArray(commandString, 15);
@@ -924,7 +946,7 @@ void loadConfigurationMenu()
 {
 	//char* commandString = new char[15];
 	//String(F("Configuration")).toCharArray(commandString, 15);
-	btSerial->println(BlueToothCommandsUtil::CommandConstructor("Configuration", BlueToothCommandsUtil::Title));
+	btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Configuration"), BlueToothCommandsUtil::Title));
 
 	//String(F("Phone:")).toCharArray(commandString, 15);
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor("Phone:" + String(_phoneNumber), BlueToothCommandsUtil::Data, F("001")));
