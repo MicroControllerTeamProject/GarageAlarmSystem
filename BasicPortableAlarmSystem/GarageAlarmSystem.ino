@@ -64,7 +64,7 @@ ActivityManager* _delayForFindPhone = new ActivityManager(30);
 
 ActivityManager* _delayForSignalStrength = new ActivityManager(30);
 
-ActivityManager* _delayForGetDataFromExternalDevice = new ActivityManager(30);
+ActivityManager* _delayForGetDataFromExternalDevice = new ActivityManager(120);
 
 MyBlueTooth* btSerial;
 
@@ -379,39 +379,11 @@ void inizializeInterrupts()
 
 void callSim900()
 {
-	/*if (_delayForDialCall->IsDelayTimeFinished(true))
-	{*/
-
 	if (_isDisableCall) { return; }
 
 	char phoneNumber[14];
 
 	strcpy(phoneNumber, _prefix);
-
-	//Clear buffer before call
-	//mySim900->ReadIncomingChars2();
-
-/*	String phoneNumber = _prefix + _phoneNumber;
-	String phoneNumberAlternative = _prefix + _phoneNumberAlternative;
-	char completePhoneNumber[14];
-	char completePhoneNumberAlternative[14];
-	phoneNumber.toCharArray(completePhoneNumber, 14);
-	phoneNumberAlternative.toCharArray(completePhoneNumberAlternative, 14);*/
-
-	/*unsigned long callTime;
-
-	switch (isLongCaller)
-	{
-	case '0':
-		callTime = 30000;
-		break;
-	case '1':
-		callTime = 40000;
-		break;
-	deafault:
-		callTime = 40000;
-		break;
-	}*/
 
 	if (_phoneNumbers == 1)
 	{
@@ -425,45 +397,9 @@ void callSim900()
 
 	mySim900->DialVoiceCall(phoneNumber);
 
-
-
-	/*mySim900->ClearBuffer(1000);
-
-	mySim900->Flush();*/
-
-
 	delay(10000);
 
 	mySim900->ReadIncomingChars2();
-
-
-	//	if (_phoneNumbers == 2)
-	//	{
-
-	//		delay(callTime);
-
-	//		mySim900->ATCommand("AT+CHUP");
-
-	//		delay(2000);
-
-	//		mySim900->DialVoiceCall(completePhoneNumberAlternative);
-
-	//		if (isLongCaller != 1)
-	//		{
-	//			delay(callTime);
-	//			mySim900->ATCommand("AT+CHUP");
-	//		}
-	//		//mySim900->ReadIncomingChars2();
-
-	//	}
-
-	//	mySim900->ClearBuffer(2000);
-
-	//	/*if (_findOutPhonesMode == 0 || _findOutPhonesMode == 1)
-	//	{*/
-	//		turnOnBlueToothAndSetTurnOffTimer(false);
-	//	//}
-	////}
 
 }
 
@@ -472,13 +408,6 @@ void motionTiltExternalInterrupt() {
 		_isOnMotionDetect = true;
 	}
 }
-
-//void motionTiltInternalInterrupt()
-//{
-//	if (!_isPIRSensorActivated) {
-//		_isOnMotionDetect = true;
-//	}
-//}
 
 void getSignalStrength()
 {
@@ -626,11 +555,11 @@ char problematicDevice[4];
 
 char problematicDeviceValue[5];
 
-bool chechDevicesValue(char h[100])
+bool chechDevicesValue(char buffExternalDevices[100])
 {
 	bool isOnAlarm = false;
 	//Serial.println(h);
-	for (int i = 0; i < 100; i+=9)
+	for (int i = 0; i < 100; i += 9)
 	{
 		int index = 0;
 		//Serial.print("i :"); Serial.println(i);
@@ -638,16 +567,15 @@ bool chechDevicesValue(char h[100])
 		{
 			/*Serial.print("ii :"); Serial.println(ii);
 			Serial.print(h[ii]);*/
-			if (h[ii] == 'N')
+			if (buffExternalDevices[ii] == 'N')
 			{
-				Serial.print("ALARM DEVICE :");Serial.println(problematicDevice);
+				//Serial.print("ALARM DEVICE :");Serial.println(problematicDevice);
 				isOnAlarm = true;
 			}
-			problematicDevice[index] = h[ii];
+			problematicDevice[index] = buffExternalDevices[ii];
 			index++;
 		}
 		memset(problematicDevice, 0, sizeof(problematicDevice));
-		//problematicDevice[0] = '\0';
 	}
 	return isOnAlarm;
 }
@@ -662,24 +590,20 @@ void loop()
 		////Pulisco buffer se ci fosse roba
 		a.readStringUntil('*');
 		a.flush();
-     	delay(500);
+		delay(500);
 		if (a.available() > 0)
 		{
-			char *h = new char[100];
-			a.readStringUntil('*').toCharArray(h,100);
-			/*h = a.readStringUntil('*');
-			htrim();*/
-			isOnAlarm = chechDevicesValue(h);
-			delete[] h;
+			char *buffExtenalDevices = new char[100];
+			a.readStringUntil('*').toCharArray(buffExtenalDevices, 100);
+			isOnAlarm = chechDevicesValue(buffExtenalDevices);
+			delete[] buffExtenalDevices;
 		}
-		
 		setSim900();
 
 		if (isOnAlarm)
 		{
 			callSim900();
 		}
-		
 	}
 
 	if (!(_isOnMotionDetect && _isAlarmOn))
@@ -733,21 +657,15 @@ void loop()
 	{
 		blueToothConfigurationSystem();
 	}
-	readMemoryAtRunTime();
+	//readMemoryAtRunTime();
 }
 
 void isMotionDetect()
 {
 	if (_isDisableCall || _findOutPhonesMode == 2 || _isPIRSensorActivated) {
 		_isOnMotionDetect = false;
-		//readIncomingSMS();
 		return;
 	}
-	//if ((millis() - _millsStart) > _sensitivityAlarm)
-	//{
-	//	_millsStart = 0;
-	//	_isFirstTilt = true;
-	//}
 
 	if ((_isOnMotionDetect && _isAlarmOn) || (_isAlarmOn && _isExternalInterruptOn && !digitalRead(3))) //&& !isOnConfiguration)									 /*if(true)*/
 	{
@@ -805,12 +723,6 @@ void isMotionDetect()
 		_isOnMotionDetect = false;
 	}
 }
-
-//void restartBlueTooth()
-//{
-//	Serial.readString();
-//	btSerial->ReceveMode();
-//}
 
 void turnOnBlueToothAndSetTurnOffTimer(bool isFromSMS)
 {
@@ -908,7 +820,7 @@ void loadMainMenu()
 	//String(F("Configuration")).toCharArray(commandString, 15);
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Configuration"), BlueToothCommandsUtil::Menu, F("001")));
 
-	
+
 	//String(F("Security")).toCharArray(commandString, 15);
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Security"), BlueToothCommandsUtil::Menu, F("004")));
 

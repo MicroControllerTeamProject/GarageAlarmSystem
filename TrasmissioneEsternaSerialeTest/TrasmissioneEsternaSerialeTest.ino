@@ -7,7 +7,7 @@ void setup(void) {
 	a->begin(9600);
 }
 
-
+//Il simbolo 'N' è considerato simbolo di errore.
 void loop(void) {
 	a->print("t01Y08.50");
 	a->print("t02Y07.50");
