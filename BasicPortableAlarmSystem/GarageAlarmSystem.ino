@@ -64,7 +64,7 @@ ActivityManager* _delayForFindPhone = new ActivityManager(30);
 
 ActivityManager* _delayForSignalStrength = new ActivityManager(30);
 
-ActivityManager* _delayForGetDataFromExternalDevice = new ActivityManager(120);
+ActivityManager* _delayForGetDataFromExternalDevice = new ActivityManager(30);
 
 MyBlueTooth* btSerial;
 
@@ -226,7 +226,7 @@ char _bufDelayFindMe[BUFSIZEDELAYFINDME];
 const int BUFSIZEEXTERNALINTERRUPTISON = 2;
 char _bufExternalInterruptIsON[BUFSIZEEXTERNALINTERRUPTISON];
 
-SoftwareSerial a = SoftwareSerial(5, 12);
+SoftwareSerial softwareSerial = SoftwareSerial(5, 4);
 
 void setSim900()
 {
@@ -569,7 +569,7 @@ bool chechDevicesValue(char buffExternalDevices[100])
 			Serial.print(h[ii]);*/
 			if (buffExternalDevices[ii] == 'N')
 			{
-				//Serial.print("ALARM DEVICE :");Serial.println(problematicDevice);
+				Serial.print("ALARM DEVICE :");Serial.println(problematicDevice);
 				isOnAlarm = true;
 			}
 			problematicDevice[index] = buffExternalDevices[ii];
@@ -586,15 +586,19 @@ void loop()
 	{
 		bool isOnAlarm = false;
 		delete mySim900;
-		a.begin(9600);
-		////Pulisco buffer se ci fosse roba
-		a.readStringUntil('*');
-		a.flush();
-		delay(500);
-		if (a.available() > 0)
+		softwareSerial.begin(19200);
+
+		softwareSerial.print("ok");
+
+		//////Pulisco buffer se ci fosse roba
+		/*softwareSerial.readStringUntil('*');
+		softwareSerial.flush();*/
+		delay(2000);
+	
+		if (softwareSerial.available() > 0)
 		{
 			char *buffExtenalDevices = new char[100];
-			a.readStringUntil('*').toCharArray(buffExtenalDevices, 100);
+			softwareSerial.readStringUntil('*').toCharArray(buffExtenalDevices, 100);
 			isOnAlarm = chechDevicesValue(buffExtenalDevices);
 			delete[] buffExtenalDevices;
 		}
