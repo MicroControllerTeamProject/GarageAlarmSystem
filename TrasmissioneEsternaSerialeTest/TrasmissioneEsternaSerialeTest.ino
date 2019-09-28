@@ -1,6 +1,6 @@
 #include "SoftwareSerial.h"
 
-SoftwareSerial* softwareSerial = new SoftwareSerial(4, 5);
+SoftwareSerial* softwareSerial = new SoftwareSerial(12, 5);
 
 void setup(void) {
 	Serial.begin(9600);

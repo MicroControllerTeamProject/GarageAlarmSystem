@@ -226,7 +226,7 @@ char _bufDelayFindMe[BUFSIZEDELAYFINDME];
 const int BUFSIZEEXTERNALINTERRUPTISON = 2;
 char _bufExternalInterruptIsON[BUFSIZEEXTERNALINTERRUPTISON];
 
-SoftwareSerial softwareSerial = SoftwareSerial(5, 4);
+SoftwareSerial softwareSerial = SoftwareSerial(5, A2);
 
 void setSim900()
 {
@@ -291,6 +291,7 @@ void setup()
 
 	pinMode(A5, INPUT_PULLUP);
 	pinMode(A4, INPUT_PULLUP);
+	pinMode(A2, OUTPUT);
 
 	blinkLed();
 }
