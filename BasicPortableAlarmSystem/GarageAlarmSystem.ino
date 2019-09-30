@@ -52,6 +52,7 @@ int temp;
 #include <StringFunctions.h>
 #include "MySim900.h"
 #include "ActivityManager.h"
+#include <TimeLib.h>
 
 
 char version[15] = "-G01 1.00-alfa";
@@ -172,6 +173,8 @@ float _voltageMinValue = 0;
 unsigned long _millsStart = 0;
 
 bool _isMasterMode = false;
+
+unsigned long _pirSensorTime = 0;
 
 unsigned long _timeToTurnOfBTAfterPowerOn = 300000;
 
@@ -581,34 +584,39 @@ bool chechDevicesValue(char buffExternalDevices[100])
 	return isOnAlarm;
 }
 
+void getExternalDevices()
+{
+	bool isOnAlarm = false;
+	delete mySim900;
+	softwareSerial.begin(19200);
+
+	softwareSerial.print("ok");
+
+	//////Pulisco buffer se ci fosse roba
+	/*softwareSerial.readStringUntil('*');
+	softwareSerial.flush();*/
+	delay(2000);
+
+	if (softwareSerial.available() > 0)
+	{
+		char *buffExtenalDevices = new char[100];
+		softwareSerial.readStringUntil('*').toCharArray(buffExtenalDevices, 100);
+		isOnAlarm = chechDevicesValue(buffExtenalDevices);
+		delete[] buffExtenalDevices;
+	}
+	setSim900();
+
+	if (isOnAlarm)
+	{
+		callSim900();
+	}
+}
+
 void loop()
 {
 	if (_delayForGetDataFromExternalDevice->IsDelayTimeFinished(false))
 	{
-		bool isOnAlarm = false;
-		delete mySim900;
-		softwareSerial.begin(19200);
-
-		softwareSerial.print("ok");
-
-		//////Pulisco buffer se ci fosse roba
-		/*softwareSerial.readStringUntil('*');
-		softwareSerial.flush();*/
-		delay(2000);
-	
-		if (softwareSerial.available() > 0)
-		{
-			char *buffExtenalDevices = new char[100];
-			softwareSerial.readStringUntil('*').toCharArray(buffExtenalDevices, 100);
-			isOnAlarm = chechDevicesValue(buffExtenalDevices);
-			delete[] buffExtenalDevices;
-		}
-		setSim900();
-
-		if (isOnAlarm)
-		{
-			callSim900();
-		}
+		getExternalDevices();
 	}
 
 	if (!(_isOnMotionDetect && _isAlarmOn))
@@ -629,11 +637,6 @@ void loop()
 			isFindOutPhonesONAndSetBluetoothInMasterMode();
 		}
 	}
-
-	//if (_delayForCallNumbers->IsDelayTimeFinished(true))
-	//{
-	//	_callNumbers = 0;
-	//}
 	if (!(_isOnMotionDetect && _isAlarmOn))
 	{
 		turnOffBluetoohIfTimeIsOver();
@@ -853,6 +856,10 @@ void loadMainMenu()
 
 	//String(F("Signal:")).toCharArray(commandString, 15);
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor("Signal:" + _signalStrength, BlueToothCommandsUtil::Info));
+
+	//String(F("Time:")).toCharArray(commandString, 15);
+	btSerial->println(BlueToothCommandsUtil::CommandConstructor("Time:" + String(hour()) + ":" + String(minute()), BlueToothCommandsUtil::Info));
+
 
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor(BlueToothCommandsUtil::EndTrasmission));
 	btSerial->Flush();
@@ -1401,19 +1408,30 @@ void pirSensorActivity()
 			blinkLed();
 			_whatIsHappened = F("P");
 
-			if (_findOutPhonesMode == 1)
+			if (isAM() && hour() < 6)
 			{
-				if (!_isDeviceDetected)
+				if ((millis() - _pirSensorTime) > 40000)
 				{
+					_pirSensorTime = 0;
+				}
+				if (_pirSensorTime != 0)
+				{
+					//Serial.println("Alarme scattato");
 					callSim900();
 					_isMasterMode = false;
-					//reedRelaySensorActivity(A4);
 				}
+				else
+				{
+					_pirSensorTime = millis();
+				}
+
+				delay(15000);
 			}
-			else
+			else if (_findOutPhonesMode == 1 && _isDeviceDetected && digitalRead(3))
 			{
-				callSim900();
-				_isMasterMode = false;
+				//Aggiungere codice che gestisce interrupt pin aperto.
+				//reedRelaySensorActivity(A5);
+				delay(15000);
 			}
 		}
 		/*unsigned int count0 = 0;
@@ -1507,7 +1525,7 @@ void readIncomingSMS()
 				return;
 			}
 			int index = response.lastIndexOf('"');
-			String smsCommand = response.substring(index + 1, index + 7);
+			String smsCommand = response.substring(index + 1, index + 8);
 			smsCommand.trim();
 			//Serial.println(smsCommand);
 			delay(1000);
@@ -1519,6 +1537,14 @@ void readIncomingSMS()
 void listOfSmsCommands(String command)
 {
 	command.trim();
+	//Imposta ora di sistema
+	if (command.startsWith("H"))
+	{
+		String hour = command.substring(1, 3);
+		String minute = (command.substring(3, 5));
+		setTime(hour.toInt(), minute.toInt(), 1, 1, 1, 2019);
+		callSim900();
+	}
 	//Attiva chiamate
 	//if (command == F("Ac"))
 	//{
