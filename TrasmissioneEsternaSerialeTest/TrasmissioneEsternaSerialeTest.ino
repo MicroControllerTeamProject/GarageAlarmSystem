@@ -27,7 +27,7 @@ void loop(void) {
 			softwareSerial->print("t08Y47.50");
 			softwareSerial->print("t09Y47.50");
 			softwareSerial->print("t10Y48.50");
-			softwareSerial->print("t11N47.50*");
+			softwareSerial->print("t11Y47.50*");
 			//delay(400);
 		}
 	}
