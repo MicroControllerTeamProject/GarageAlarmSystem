@@ -75,12 +75,6 @@ String _oldPassword = "";
 
 String _newPassword = "";
 
-const byte _pin_powerLed = 13;
-
-const byte _pin_rxSIM900 = 7;
-
-const byte _pin_txSIM900 = 8;
-
 const byte _addressStartBufPhoneNumber = 1;
 
 const byte _addressStartBufPrecisionNumber = 12;
@@ -229,7 +223,27 @@ char _bufDelayFindMe[BUFSIZEDELAYFINDME];
 const int BUFSIZEEXTERNALINTERRUPTISON = 2;
 char _bufExternalInterruptIsON[BUFSIZEEXTERNALINTERRUPTISON];
 
-SoftwareSerial softwareSerial = SoftwareSerial(5, A2);
+//---------------------------------------------       PINS USED   ----------------------------------------------------------
+
+//Caution: check on portableAlarm board for see what ports you can use,some of them are shorted out.
+
+static const uint8_t pirSensor1Pin = A4;
+
+static const uint8_t pirSensor2Pin = A5;
+
+static const uint8_t softwareSerialExternalDevicesPort = A2;
+
+static const uint8_t bluetoothKeyPin = 10;
+
+static const uint8_t bluetoothTransistorPin = 6;
+
+static const byte _pin_powerLed = 13;
+
+static const byte _pin_rxSIM900 = 7;
+
+static const byte _pin_txSIM900 = 8;
+
+SoftwareSerial softwareSerial = SoftwareSerial(5, softwareSerialExternalDevicesPort);
 
 void setSim900()
 {
@@ -266,7 +280,7 @@ void setup()
 
 	inizializeInterrupts();
 
-	btSerial = new MyBlueTooth(&Serial, 10, 6, 38400, 9600);
+	btSerial = new MyBlueTooth(&Serial, bluetoothKeyPin, bluetoothTransistorPin, 38400, 9600);
 
 	btSerial->Reset_To_Slave_Mode();
 
@@ -645,12 +659,10 @@ void loop()
 	{
 		turnOnBlueToothIfMotionIsDetected();
 	}
-
 	if (!(_isOnMotionDetect && _isAlarmOn))
 	{
 		internalTemperatureActivity();
 	}
-
 	if (!(_isOnMotionDetect && _isAlarmOn))
 	{
 		voltageActivity();
@@ -1403,7 +1415,7 @@ void pirSensorActivity()
 	if (_isDisableCall) { return; }
 	if (_isPIRSensorActivated && _isAlarmOn)
 	{
-		if (digitalRead(A5) && digitalRead(A4))
+		if (digitalRead(pirSensor2Pin) && digitalRead(pirSensor1Pin))
 		{
 			blinkLed();
 			_whatIsHappened = F("P");
