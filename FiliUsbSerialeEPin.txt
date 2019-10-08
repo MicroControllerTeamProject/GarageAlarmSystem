@@ -1,0 +1,4 @@
+blu massa
+bianco 5v
+rosso A5
+verde A4

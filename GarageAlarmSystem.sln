@@ -19,6 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{
 		Documents\PortableAlarm.docx = Documents\PortableAlarm.docx
 		Documents\Richiesta.txt = Documents\Richiesta.txt
 		Documents\Speek.docx = Documents\Speek.docx
+		UsbToConnectors.txt = UsbToConnectors.txt
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "images", "images", "{20BCCE20-C908-48F6-BD16-AC2749927EDB}"

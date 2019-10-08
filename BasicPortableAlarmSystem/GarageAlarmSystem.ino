@@ -227,13 +227,15 @@ char _bufExternalInterruptIsON[BUFSIZEEXTERNALINTERRUPTISON];
 
 //Caution: check on portableAlarm board for see what ports you can use,some of them are shorted out.
 
-static const uint8_t pirSensor1Pin = A4;
+//static const uint8_t pirSensor1Pin = A4;
 
 static const uint8_t pirSensor2Pin = A5;
 
-static const uint8_t softwareSerialExternalDevicesTxPort = A2;
+static const uint8_t softwareSerialExternalDevicesTxPort = 12;
 
-static const uint8_t softwareSerialExternalDevicesRxPort = 5;
+static const uint8_t softwareSerialExternalDevicesRxPort = 11;
+
+static const uint8_t softwareSerialExternalDevicesPinAlarm = A2;
 
 static const uint8_t bluetoothKeyPin = 10;
 
@@ -245,7 +247,9 @@ static const byte _pin_rxSIM900 = 7;
 
 static const byte _pin_txSIM900 = 8;
 
-SoftwareSerial softwareSerial = SoftwareSerial(softwareSerialExternalDevicesRxPort, softwareSerialExternalDevicesTxPort);
+SoftwareSerial *softwareSerial = new SoftwareSerial(softwareSerialExternalDevicesRxPort, softwareSerialExternalDevicesTxPort);
+
+bool _isTimeInitialize = false;
 
 void setup()
 {
@@ -280,10 +284,23 @@ void setup()
 	//mySim900->WaitSMSComing();
 
 	pinMode(pirSensor2Pin, INPUT_PULLUP);
-	pinMode(pirSensor1Pin, INPUT_PULLUP);
+	//pinMode(pirSensor1Pin, INPUT_PULLUP);
 	pinMode(softwareSerialExternalDevicesTxPort, OUTPUT);
 
+	softwareSerial->begin(19200);
+
 	blinkLed();
+}
+
+String getSerialMessage()
+{
+	String recevedMessage = "";
+	if (softwareSerial->available() > 0)
+	{
+		recevedMessage = softwareSerial->readString();
+		recevedMessage.trim();
+	}
+	return recevedMessage;
 }
 
 void initilizeEEPromData()
@@ -339,6 +356,7 @@ void initilizeEEPromData()
 void inizializePins()
 {
 	pinMode(_pin_powerLed, OUTPUT);
+	pinMode(softwareSerialExternalDevicesPinAlarm, OUTPUT);
 }
 
 void inizializeInterrupts()
@@ -354,33 +372,33 @@ void motionTiltExternalInterrupt() {
 }
 
 
-void turnOffBluetoohIfTimeIsOver()
-{
-	if (_findOutPhonesMode == 0
-		&& (millis() > _timeToTurnOfBTAfterPowerOn)
-		&& btSerial->isBlueToothOn()
-		&& _isBTSleepON
-		)
-	{
-		btSerial->turnOffBlueTooth();
-		digitalWrite(13, HIGH);
-		delay(5000);
-		digitalWrite(13, LOW);
-	}
-}
+//void turnOffBluetoohIfTimeIsOver()
+//{
+//	if (_findOutPhonesMode == 0
+//		&& (millis() > _timeToTurnOfBTAfterPowerOn)
+//		&& btSerial->isBlueToothOn()
+//		&& _isBTSleepON
+//		)
+//	{
+//		btSerial->turnOffBlueTooth();
+//		digitalWrite(13, HIGH);
+//		delay(5000);
+//		digitalWrite(13, LOW);
+//	}
+//}
 
-void turnOnBlueToothIfMotionIsDetected()
-{
-	if (_isOnMotionDetect
-		&& !_isAlarmOn
-		&& btSerial->isBlueToothOff()
-		&& _isBTSleepON
-		)
-	{
-		_isOnMotionDetect = false;
-		turnOnBlueToothAndSetTurnOffTimer(false);
-	}
-}
+//void turnOnBlueToothIfMotionIsDetected()
+//{
+//	if (_isOnMotionDetect
+//		&& !_isAlarmOn
+//		&& btSerial->isBlueToothOff()
+//		&& _isBTSleepON
+//		)
+//	{
+//		_isOnMotionDetect = false;
+//		turnOnBlueToothAndSetTurnOffTimer(false);
+//	}
+//}
 
 bool isFindOutPhonesONAndSetBluetoothInMasterMode()
 {
@@ -497,6 +515,38 @@ char problematicDeviceValue[5];
 
 void loop()
 {
+	String receivedMessage = "";
+	while (!_isTimeInitialize)
+	{
+		digitalWrite(softwareSerialExternalDevicesPinAlarm, LOW);
+		receivedMessage = getSerialMessage();
+		if (receivedMessage.startsWith("H"))
+		{
+			String hour = receivedMessage.substring(1, 3);
+			String minute = (receivedMessage.substring(3, 5));
+			setTime(hour.toInt(), minute.toInt(), 1, 1, 1, 2019);
+			Serial.print(hour); Serial.print(":"); Serial.print(minute);
+			_isTimeInitialize = true;
+		}
+	}
+
+	digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
+
+	if (receivedMessage.startsWith("H"))
+	{
+		softwareSerial->print("t01N08.50");
+		softwareSerial->print("t02Y07.50");
+		softwareSerial->print("t03Y47.50");
+		softwareSerial->print("t04Y48.50");
+		softwareSerial->print("t05Y47.50");
+		softwareSerial->print("t06Y47.50");
+		softwareSerial->print("t07Y48.50");
+		softwareSerial->print("t08Y47.50");
+		softwareSerial->print("t09Y47.50");
+		softwareSerial->print("t10Y48.50");
+		softwareSerial->print("t11Y47.50*");
+	}
+
 	
 	if ((!(_isOnMotionDetect && _isAlarmOn)) || _findOutPhonesMode == 2)
 	{
@@ -506,14 +556,14 @@ void loop()
 			isFindOutPhonesONAndSetBluetoothInMasterMode();
 		}
 	}
-	if (!(_isOnMotionDetect && _isAlarmOn))
-	{
-		turnOffBluetoohIfTimeIsOver();
-	}
-	if (!(_isOnMotionDetect && _isAlarmOn))
-	{
-		turnOnBlueToothIfMotionIsDetected();
-	}
+	//if (!(_isOnMotionDetect && _isAlarmOn))
+	//{
+	//	turnOffBluetoohIfTimeIsOver();
+	//}
+	//if (!(_isOnMotionDetect && _isAlarmOn))
+	//{
+	//	turnOnBlueToothIfMotionIsDetected();
+	//}
 	if (!(_isOnMotionDetect && _isAlarmOn))
 	{
 		internalTemperatureActivity();
@@ -721,12 +771,21 @@ void loadMainMenu()
 	//String(F("WhatzUp:")).toCharArray(commandString, 15);
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor("WhatzUp:" + _whatIsHappened, BlueToothCommandsUtil::Info));
 
-	////String(F("Signal:")).toCharArray(commandString, 15);
-	//btSerial->println(BlueToothCommandsUtil::CommandConstructor("Signal:" + _signalStrength, BlueToothCommandsUtil::Info));
+	String hours = String(hour());
 
-	//String(F("Time:")).toCharArray(commandString, 15);
-	btSerial->println(BlueToothCommandsUtil::CommandConstructor("Time:" + String(hour()) + ":" + String(minute()), BlueToothCommandsUtil::Info));
+	String minutes = String(minute());
 
+	if (hour() < 10)
+	{
+		hours = "0" + String(hour());
+	}
+
+	if (minute() < 10)
+	{
+		minutes = "0" + String(minute());
+	}
+
+	btSerial->println(BlueToothCommandsUtil::CommandConstructor("Time:" + hours + ":" + String(minutes), BlueToothCommandsUtil::Info));
 
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor(BlueToothCommandsUtil::EndTrasmission));
 	btSerial->Flush();
@@ -1203,7 +1262,7 @@ void pirSensorActivity()
 	//if (_isDisableCall) { return; }
 	if (_isPIRSensorActivated && _isAlarmOn)
 	{
-		if (digitalRead(pirSensor2Pin) && digitalRead(pirSensor1Pin))
+		if (digitalRead(pirSensor2Pin))
 		{
 			blinkLed();
 			_whatIsHappened = F("P");

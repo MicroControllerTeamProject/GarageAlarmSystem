@@ -1,0 +1,2 @@
+verde	A4
+Blu		A5
