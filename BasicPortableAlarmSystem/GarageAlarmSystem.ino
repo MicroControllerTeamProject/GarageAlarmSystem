@@ -229,6 +229,8 @@ char _bufExternalInterruptIsON[BUFSIZEEXTERNALINTERRUPTISON];
 
 //static const uint8_t pirSensor1Pin = A4;
 
+static const uint8_t voltagePin = A1;
+
 static const uint8_t pirSensor2Pin = A5;
 
 static const uint8_t softwareSerialExternalDevicesTxPort = 12;
@@ -530,7 +532,7 @@ void loop()
 		}
 	}
 
-	digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
+	/*digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
 
 	if (receivedMessage.startsWith("H"))
 	{
@@ -545,7 +547,7 @@ void loop()
 		softwareSerial->print("t09Y47.50");
 		softwareSerial->print("t10Y48.50");
 		softwareSerial->print("t11Y47.50*");
-	}
+	}*/
 
 	
 	if ((!(_isOnMotionDetect && _isAlarmOn)) || _findOutPhonesMode == 2)
@@ -1342,13 +1344,18 @@ void voltageActivity()
 {
 	if (_delayForVoltage->IsDelayTimeFinished(true))
 	{
-		_voltageValue = (5.10 / 1023.00) * analogRead(A1);
+		_voltageValue = (5.10 / 1023.00) * analogRead(voltagePin);
 		_voltageMinValue = 3.25;
 
 		if (_voltageValue < _voltageMinValue)
 		{
 			_whatIsHappened = F("V");
-			//Invia comunicazione
+			Serial.println(_voltageValue);
+			digitalWrite(softwareSerialExternalDevicesPinAlarm, LOW);
+			delay(5000);
+			softwareSerial->print("V01N"); softwareSerial->print(_voltageValue); softwareSerial->print("*");
+			delay(5000);
+			digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
 		}
 	}
 }
