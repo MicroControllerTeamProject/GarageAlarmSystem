@@ -312,7 +312,7 @@ void initilizeEEPromData()
 	//EEPROM.write(0, 1);
 	LSG_EEpromRW* eepromRW = new LSG_EEpromRW();
 
-	
+
 
 	eepromRW->eeprom_read_string(_addressStartFindOutPhonesON, _bufFindOutPhonesON, BUFSIZEFINDOUTPHONESON);
 	_findOutPhonesMode = atoi(&_bufFindOutPhonesON[0]);
@@ -480,7 +480,7 @@ bool isFindOutPhonesONAndSetBluetoothInMasterMode()
 			{
 				//callSim900();
 				//delay(10000);
-				_isMasterMode = false;
+				//_isMasterMode = false;
 			}
 		}
 
@@ -516,6 +516,8 @@ void readMemoryAtRunTime()
 char problematicDevice[4];
 
 char problematicDeviceValue[5];
+
+byte _doorState = 0;
 
 void loop()
 {
@@ -553,7 +555,7 @@ void loop()
 		softwareSerial->print("t11Y47.50*");
 	}*/
 
-	
+
 	if ((!(_isOnMotionDetect && _isAlarmOn)) || _findOutPhonesMode != 0)
 	{
 		if (_delayForFindPhone->IsDelayTimeFinished(true))
@@ -589,6 +591,8 @@ void loop()
 		blueToothConfigurationSystem();
 	}
 	//readMemoryAtRunTime();
+
+
 }
 
 void isExternalInterruptMotionDetect()
@@ -602,7 +606,7 @@ void isExternalInterruptMotionDetect()
 	if ((_isOnMotionDetect && _isAlarmOn) || (_isAlarmOn && _isExternalInterruptOn && !digitalRead(interruptExternalMotionPin))) //&& !isOnConfiguration)									 /*if(true)*/
 	{
 		//Serial.println("lampeggio");
-		blinkLed();
+		
 
 		detachInterrupt(0);
 		detachInterrupt(1);
@@ -615,15 +619,16 @@ void isExternalInterruptMotionDetect()
 		{
 			if (!_isDeviceDetected)
 			{
+				blinkLed();
 				sendMessageToComunicatorDevice(message);
-				_isMasterMode = false;
+				//_isMasterMode = false;
 			}
 		}
 		else
 		{
-			
+			blinkLed();
 			sendMessageToComunicatorDevice(message);
-			_isMasterMode = false;
+			//_isMasterMode = false;
 		}
 		//Accendo bluetooth con ritardo annesso solo se è scattato allarme,troppo critico
 		//per perdere tempo se non scattato allarme.
@@ -634,7 +639,7 @@ void isExternalInterruptMotionDetect()
 		}*/
 		//}
 
-		
+
 
 		//isFindOutPhonesONAndSetBluetoothInMasterMode();
 
@@ -807,7 +812,7 @@ void loadConfigurationMenu()
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Configuration"), BlueToothCommandsUtil::Title));
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor("TempMax:" + String(_tempMax), BlueToothCommandsUtil::Data, F("004")));
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor("OffSetTemp:" + String(_offSetTempValue), BlueToothCommandsUtil::Data, F("095")));
-	
+
 	if (_findOutPhonesMode != 2)
 	{
 		//String(F("PIR status:")).toCharArray(commandString, 15);
@@ -906,7 +911,7 @@ void blueToothConfigurationSystem()
 
 
 #pragma region Data
-		
+
 
 		//if (_bluetoothData.indexOf(F("D097")) > -1)
 		//{
@@ -1272,38 +1277,38 @@ void pirSensorActivity()
 	{
 		if (digitalRead(pirSensor2Pin))
 		{
-			blinkLed();
+			
 			_whatIsHappened = F("P");
-			if (isAM() && hour() < 6)
-			{
-				if ((millis() - _pirSensorTime) > 10000)
-				{
-					_pirSensorTime = millis();
-					
-					/*_pirSensorTime = 0;
-					delay(5000);*/
-				}
-				else if((millis() - _pirSensorTime) > 5000)
-				{
-					Serial.println("Alarme scattato");
-					//callSim900();
-					_isMasterMode = false;
-				}
-				/*else
-				{
-					_pirSensorTime = millis();
-				}*/
 
-				//delay(15000);
-			}
-			else if (_findOutPhonesMode == 1 && _isDeviceDetected && digitalRead(3))
+			if (digitalRead(interruptExternalMotionPin) && _doorState == 1)
 			{
+				delay(30000);
+				_doorState = 0;
+			}
+			else if (_findOutPhonesMode == 1 && _isDeviceDetected && digitalRead(interruptExternalMotionPin))
+			{
+				blinkLed();
 				Serial.println("Apertura garage");
-				delay(5000);
+				_doorState = 1;
+				delay(10000);
 				//Aggiungere codice che gestisce interrupt pin aperto.
 				//reedRelaySensorActivity(A5);
 				//delay(15000);
 			}
+			else if ((isAM() && hour() < 6) && !_isDeviceDetected)
+			{
+				if ((millis() - _pirSensorTime) > 10000)
+				{
+					_pirSensorTime = millis();
+				}
+				else if ((millis() - _pirSensorTime) > 5000)
+				{
+					blinkLed();
+					String message = "P01N";
+					sendMessageToComunicatorDevice(message);
+				}
+			}
+
 		}
 		/*unsigned int count0 = 0;
 		for (unsigned int i = 0; i < 110; i++)
@@ -1353,7 +1358,7 @@ void internalTemperatureActivity()
 
 void voltageActivity()
 {
-	
+
 	if (_delayForVoltage->IsDelayTimeFinished(true))
 	{
 		//Serial.println(analogRead(voltagePin));
