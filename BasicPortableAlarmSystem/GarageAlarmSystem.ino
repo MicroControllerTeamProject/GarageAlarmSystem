@@ -231,6 +231,8 @@ char _bufExternalInterruptIsON[BUFSIZEEXTERNALINTERRUPTISON];
 
 static const uint8_t voltagePin = A1;
 
+static const uint8_t interruptExternalMotionPin = 3;
+
 static const uint8_t pirSensor2Pin = A5;
 
 static const uint8_t softwareSerialExternalDevicesTxPort = 12;
@@ -527,7 +529,7 @@ void loop()
 			String hour = receivedMessage.substring(1, 3);
 			String minute = (receivedMessage.substring(3, 5));
 			setTime(hour.toInt(), minute.toInt(), 1, 1, 1, 2019);
-			Serial.print(hour); Serial.print(":"); Serial.print(minute);
+			Serial.print(hour); Serial.print(":"); Serial.println(minute);
 			_isTimeInitialize = true;
 		}
 	}
@@ -594,7 +596,7 @@ void isExternalInterruptMotionDetect()
 		return;
 	}
 
-	if ((_isOnMotionDetect && _isAlarmOn) || (_isAlarmOn && _isExternalInterruptOn && !digitalRead(3))) //&& !isOnConfiguration)									 /*if(true)*/
+	if ((_isOnMotionDetect && _isAlarmOn) || (_isAlarmOn && _isExternalInterruptOn && !digitalRead(interruptExternalMotionPin))) //&& !isOnConfiguration)									 /*if(true)*/
 	{
 		//Serial.println("lampeggio");
 		blinkLed();
@@ -605,18 +607,19 @@ void isExternalInterruptMotionDetect()
 		/*	if ((!_isFirstTilt || (_precision == 9)) && _precision != 0)
 			{*/
 		_whatIsHappened = F("M");
-
+		String message = F("M01N");
 		if (_findOutPhonesMode == 1)
 		{
 			if (!_isDeviceDetected)
 			{
-				//callSim900();
+				sendMessageToComunicatorDevice(message);
 				_isMasterMode = false;
 			}
 		}
 		else
 		{
-			//callSim900();
+			
+			sendMessageToComunicatorDevice(message);
 			_isMasterMode = false;
 		}
 		//Accendo bluetooth con ritardo annesso solo se è scattato allarme,troppo critico
@@ -1332,8 +1335,9 @@ void internalTemperatureActivity()
 
 		if ((uint8_t)getTemp() > _tempMax)
 		{
-
 			_whatIsHappened = F("T");
+			String message = "TINN" + String((uint8_t)getTemp());
+			sendMessageToComunicatorDevice(message);
 			//callSim900();
 		}
 		/*delete chipTemp;*/
@@ -1342,20 +1346,19 @@ void internalTemperatureActivity()
 
 void voltageActivity()
 {
+	
 	if (_delayForVoltage->IsDelayTimeFinished(true))
 	{
-		_voltageValue = (5.10 / 1023.00) * analogRead(voltagePin);
+		//Serial.println(analogRead(voltagePin));
+		_voltageValue = (5.1 / 1023.00) * analogRead(voltagePin);
+		//Serial.println(_voltageValue);
 		_voltageMinValue = 3.25;
-
 		if (_voltageValue < _voltageMinValue)
 		{
 			_whatIsHappened = F("V");
-			Serial.println(_voltageValue);
-			digitalWrite(softwareSerialExternalDevicesPinAlarm, LOW);
-			delay(5000);
-			softwareSerial->print("V01N"); softwareSerial->print(_voltageValue); softwareSerial->print("*");
-			delay(5000);
-			digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
+
+			String message = "V01N" + String(_voltageValue);
+			sendMessageToComunicatorDevice(message);
 		}
 	}
 }
@@ -1444,3 +1447,24 @@ int freeRam() {
 	temp = (int)&v;
 	return (int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval);
 }
+
+void sendMessageToComunicatorDevice(String message)
+{
+	digitalWrite(softwareSerialExternalDevicesPinAlarm, LOW);
+	bool isMessageReceived = false;
+	while (!isMessageReceived)
+	{
+		if (softwareSerial->available() > 0)
+		{
+			String messageReceived = softwareSerial->readString();
+			if (messageReceived.startsWith("H"))
+			{
+				Serial.println("Pronto a trasmettere");
+				softwareSerial->print(message); softwareSerial->print("*");
+				isMessageReceived = true;
+				digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
+			}
+		}
+	}
+}
+
