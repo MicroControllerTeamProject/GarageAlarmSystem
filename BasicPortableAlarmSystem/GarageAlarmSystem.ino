@@ -114,7 +114,7 @@ const byte _addressStartDeviceName2 = 110;
 
 uint8_t _isPIRSensorActivated = 0;
 
-bool _isBlueLedDisable = true;
+bool _isBlueLedDisable = false;
 
 //bool _isDisableCall = false;
 
@@ -534,6 +534,8 @@ void loop()
 		}
 	}
 
+	digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
+
 	/*digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
 
 	if (receivedMessage.startsWith("H"))
@@ -552,7 +554,7 @@ void loop()
 	}*/
 
 	
-	if ((!(_isOnMotionDetect && _isAlarmOn)) || _findOutPhonesMode == 2)
+	if ((!(_isOnMotionDetect && _isAlarmOn)) || _findOutPhonesMode != 0)
 	{
 		if (_delayForFindPhone->IsDelayTimeFinished(true))
 		{
@@ -591,7 +593,8 @@ void loop()
 
 void isExternalInterruptMotionDetect()
 {
-	if (_findOutPhonesMode == 2 || _isPIRSensorActivated) {
+	/*if (_findOutPhonesMode == 2 || _isPIRSensorActivated) {*/
+	if (_findOutPhonesMode == 2) {
 		_isOnMotionDetect = false;
 		return;
 	}
@@ -624,16 +627,16 @@ void isExternalInterruptMotionDetect()
 		}
 		//Accendo bluetooth con ritardo annesso solo se è scattato allarme,troppo critico
 		//per perdere tempo se non scattato allarme.
-		if (btSerial->isBlueToothOff() && _findOutPhonesMode == 0)
+		/*if (btSerial->isBlueToothOff() && _findOutPhonesMode == 0)
 		{
 			delay(30000);
 			turnOnBlueToothAndSetTurnOffTimer(false);
-		}
+		}*/
 		//}
 
 		
 
-		isFindOutPhonesONAndSetBluetoothInMasterMode();
+		//isFindOutPhonesONAndSetBluetoothInMasterMode();
 
 
 		/*}
@@ -1271,31 +1274,35 @@ void pirSensorActivity()
 		{
 			blinkLed();
 			_whatIsHappened = F("P");
-
 			if (isAM() && hour() < 6)
 			{
-				if ((millis() - _pirSensorTime) > 40000)
+				if ((millis() - _pirSensorTime) > 10000)
 				{
-					_pirSensorTime = 0;
+					_pirSensorTime = millis();
+					
+					/*_pirSensorTime = 0;
+					delay(5000);*/
 				}
-				if (_pirSensorTime != 0)
+				else if((millis() - _pirSensorTime) > 5000)
 				{
-					//Serial.println("Alarme scattato");
+					Serial.println("Alarme scattato");
 					//callSim900();
 					_isMasterMode = false;
 				}
-				else
+				/*else
 				{
 					_pirSensorTime = millis();
-				}
+				}*/
 
-				delay(15000);
+				//delay(15000);
 			}
 			else if (_findOutPhonesMode == 1 && _isDeviceDetected && digitalRead(3))
 			{
+				Serial.println("Apertura garage");
+				delay(5000);
 				//Aggiungere codice che gestisce interrupt pin aperto.
 				//reedRelaySensorActivity(A5);
-				delay(15000);
+				//delay(15000);
 			}
 		}
 		/*unsigned int count0 = 0;
@@ -1462,9 +1469,9 @@ void sendMessageToComunicatorDevice(String message)
 				Serial.println("Pronto a trasmettere");
 				softwareSerial->print(message); softwareSerial->print("*");
 				isMessageReceived = true;
-				digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
 			}
 		}
 	}
+	digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
 }
 
