@@ -229,9 +229,13 @@ char _bufExternalInterruptIsON[BUFSIZEEXTERNALINTERRUPTISON];
 
 //static const uint8_t pirSensor1Pin = A4;
 
+static const uint8_t buzzerPin = 9;
+
 static const uint8_t voltagePin = A1;
 
 static const uint8_t interruptExternalMotionPin = 3;
+
+static const uint8_t relayPin = 5;
 
 static const uint8_t pirSensor2Pin = A5;
 
@@ -360,6 +364,7 @@ void initilizeEEPromData()
 void inizializePins()
 {
 	pinMode(_pin_powerLed, OUTPUT);
+	pinMode(buzzerPin, OUTPUT);
 	pinMode(softwareSerialExternalDevicesPinAlarm, OUTPUT);
 }
 
@@ -1265,35 +1270,27 @@ boolean isValidNumber(String str)
 
 void pirSensorActivity()
 {
-	//Serial.print("analogRead(A4) = "); Serial.println(analogRead(A4));
-	//Serial.print("digitalRead(A4) = "); Serial.println(digitalRead(A4));
-	//Serial.println("---------------------------------------------------------");
-	//Serial.print("analogRead(A5) = "); Serial.println(analogRead(A5));
-	//Serial.print("digitalRead(A5) = "); Serial.println(digitalRead(A5));
-
-	//delay(1000);
-	//if (_isDisableCall) { return; }
 	if (_isPIRSensorActivated && _isAlarmOn)
 	{
 		if (digitalRead(pirSensor2Pin))
 		{
-			
 			_whatIsHappened = F("P");
 
 			if (digitalRead(interruptExternalMotionPin) && _doorState == 1)
 			{
-				delay(30000);
+				Serial.println("Attesa per riapertura garage");
+				delay(60000);
 				_doorState = 0;
 			}
 			else if (_findOutPhonesMode == 1 && _isDeviceDetected && digitalRead(interruptExternalMotionPin))
 			{
 				blinkLed();
-				Serial.println("Apertura garage");
+				buzzerFunction(buzzerPin, 100, 1000);
+				//Serial.println("Apertura garage");
 				_doorState = 1;
-				delay(10000);
 				//Aggiungere codice che gestisce interrupt pin aperto.
-				//reedRelaySensorActivity(A5);
-				//delay(15000);
+				reedRelaySensorActivity(relayPin);
+				delay(10000);
 			}
 			else if ((isAM() && hour() < 6) && !_isDeviceDetected)
 			{
@@ -1478,5 +1475,10 @@ void sendMessageToComunicatorDevice(String message)
 		}
 	}
 	digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
+}
+
+void buzzerFunction(byte buzzerPin,int frequency,int time)
+{
+	tone(buzzerPin, frequency, time);
 }
 
