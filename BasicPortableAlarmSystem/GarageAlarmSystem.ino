@@ -122,7 +122,7 @@ bool _isOnMotionDetect = false;
 
 //char _prefix[4] = "+39";
 
-bool _isAlarmOn = true;
+bool _isAlarmOn = false;
 
 //String _phoneNumber;
 
