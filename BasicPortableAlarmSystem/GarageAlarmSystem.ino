@@ -536,7 +536,7 @@ void loop()
 			String hour = receivedMessage.substring(1, 3);
 			String minute = (receivedMessage.substring(3, 5));
 			setTime(hour.toInt(), minute.toInt(), 1, 1, 1, 2019);
-			Serial.print(hour); Serial.print(":"); Serial.println(minute);
+			//Serial.print(hour); Serial.print(":"); Serial.println(minute);
 			_isTimeInitialize = true;
 		}
 	}
@@ -596,8 +596,6 @@ void loop()
 		blueToothConfigurationSystem();
 	}
 	//readMemoryAtRunTime();
-
-
 }
 
 void isExternalInterruptMotionDetect()
@@ -610,14 +608,8 @@ void isExternalInterruptMotionDetect()
 
 	if ((_isOnMotionDetect && _isAlarmOn) || (_isAlarmOn && _isExternalInterruptOn && !digitalRead(interruptExternalMotionPin))) //&& !isOnConfiguration)									 /*if(true)*/
 	{
-		//Serial.println("lampeggio");
-		
-
 		detachInterrupt(0);
 		detachInterrupt(1);
-
-		/*	if ((!_isFirstTilt || (_precision == 9)) && _precision != 0)
-			{*/
 		_whatIsHappened = F("M");
 		String message = F("M01N");
 		if (_findOutPhonesMode == 1)
@@ -626,41 +618,18 @@ void isExternalInterruptMotionDetect()
 			{
 				blinkLed();
 				sendMessageToComunicatorDevice(message);
-				//_isMasterMode = false;
 			}
 		}
 		else
 		{
 			blinkLed();
 			sendMessageToComunicatorDevice(message);
-			//_isMasterMode = false;
+
 		}
-		//Accendo bluetooth con ritardo annesso solo se è scattato allarme,troppo critico
-		//per perdere tempo se non scattato allarme.
-		/*if (btSerial->isBlueToothOff() && _findOutPhonesMode == 0)
-		{
-			delay(30000);
-			turnOnBlueToothAndSetTurnOffTimer(false);
-		}*/
-		//}
-
-
-
-		//isFindOutPhonesONAndSetBluetoothInMasterMode();
-
-
-		/*}
-		else
-		{
-			_isFirstTilt = false;
-			_millsStart = millis();
-		}*/
+		
 		EIFR |= 1 << INTF1; //clear external interrupt 1
 		EIFR |= 1 << INTF0; //clear external interrupt 0
-		//EIFR = 0x01;
 		sei();
-
-		/*attachInterrupt(0, motionTiltInternalInterrupt, RISING);*/
 		attachInterrupt(1, motionTiltExternalInterrupt, RISING);
 
 		_isOnMotionDetect = false;
@@ -1278,8 +1247,9 @@ void pirSensorActivity()
 
 			if (digitalRead(interruptExternalMotionPin) && _doorState == 1)
 			{
-				Serial.println("Attesa per riapertura garage");
+				//Serial.println("Attesa per riapertura garage");
 				delay(60000);
+				//Serial.println("Garage pronto per riapertura");
 				_doorState = 0;
 			}
 			else if (_findOutPhonesMode == 1 && _isDeviceDetected && digitalRead(interruptExternalMotionPin))
@@ -1468,7 +1438,7 @@ void sendMessageToComunicatorDevice(String message)
 			String messageReceived = softwareSerial->readString();
 			if (messageReceived.startsWith("H"))
 			{
-				Serial.println("Pronto a trasmettere");
+				//Serial.println("Pronto a trasmettere");
 				softwareSerial->print(message); softwareSerial->print("*");
 				isMessageReceived = true;
 			}
