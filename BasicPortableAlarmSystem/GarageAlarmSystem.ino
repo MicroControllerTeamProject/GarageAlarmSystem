@@ -122,7 +122,7 @@ bool _isOnMotionDetect = false;
 
 //char _prefix[4] = "+39";
 
-bool _isAlarmOn = false;
+bool _isAlarmOn = true;
 
 //String _phoneNumber;
 
@@ -176,7 +176,7 @@ unsigned long _timeAfterPowerOnForBTFinder = 300000;
 
 //String _apn = "";
 
-bool _isDeviceDetected = false;
+bool _isPhoneDeviceDetected = false;
 
 //const int BUFSIZEPHONENUMBER = 11;
 ////char _bufPhoneNumber[BUFSIZEPHONENUMBER];
@@ -447,21 +447,21 @@ bool isFindOutPhonesONAndSetBluetoothInMasterMode()
 
 		for (uint8_t i = 0; i < _delayFindMe; i++)
 		{
-			_isDeviceDetected = btSerial->IsDeviceDetected(_deviceAddress, _deviceName);
-			if (_isDeviceDetected) { break; }
+			_isPhoneDeviceDetected = btSerial->IsDeviceDetected(_deviceAddress, _deviceName);
+			if (_isPhoneDeviceDetected) { break; }
 			if (_findOutPhonesMode == 1)
 			{
 				_deviceAddress2.trim();
 				_deviceName2.trim();
 				if (_deviceAddress2.length() > 1 && _deviceName2.length() > 1) {
-					_isDeviceDetected = btSerial->IsDeviceDetected(_deviceAddress2, _deviceName2);
-					if (_isDeviceDetected) { break; };
+					_isPhoneDeviceDetected = btSerial->IsDeviceDetected(_deviceAddress2, _deviceName2);
+					if (_isPhoneDeviceDetected) { break; };
 				}
 			}
 		}
 
 		//bool isHumanDetected = pirSensor->isHumanDetected();
-		if (_isDeviceDetected
+		if (_isPhoneDeviceDetected
 			//(isDeviceDetected
 			//	/*&& (millis() - humanDetectedWithFindOutPhonesON >= 7000)
 			//	&& humanDetectedWithFindOutPhonesON != 0*/
@@ -490,7 +490,7 @@ bool isFindOutPhonesONAndSetBluetoothInMasterMode()
 		}
 
 		/*	delete(pirSensor);*/
-		return _isDeviceDetected;
+		return _isPhoneDeviceDetected;
 	}
 }
 
@@ -614,7 +614,7 @@ void isExternalInterruptMotionDetect()
 		String message = F("M01N");
 		if (_findOutPhonesMode == 1)
 		{
-			if (!_isDeviceDetected)
+			if (!_isPhoneDeviceDetected)
 			{
 				blinkLed();
 				sendMessageToComunicatorDevice(message);
@@ -1236,39 +1236,47 @@ boolean isValidNumber(String str)
 	}
 	return false;
 }
-
+unsigned long deltaTimeForOpenTheDoor = 0;
 void pirSensorActivity()
 {
+	if (isGarageDoorClosed() && _doorState == 1)
+	{
+		if (deltaTimeForOpenTheDoor == 0)
+		{
+			deltaTimeForOpenTheDoor = millis();
+			Serial.println("Attesa per riapertura garage");
+		}
+		if (millis() - deltaTimeForOpenTheDoor > 60000)
+		{
+			Serial.println("Garage pronto per riapertura");
+			_doorState = 0;
+			deltaTimeForOpenTheDoor = 0;
+		}
+	}
 	if (_isPIRSensorActivated && _isAlarmOn)
 	{
-		if (digitalRead(pirSensor2Pin))
+		if (isThereSomeOneInFrontOfGarage())
 		{
+			//Serial.println("isThereSomeOneInFrontOfGarage");
 			_whatIsHappened = F("P");
 
-			if (digitalRead(interruptExternalMotionPin) && _doorState == 1)
-			{
-				//Serial.println("Attesa per riapertura garage");
-				delay(60000);
-				//Serial.println("Garage pronto per riapertura");
-				_doorState = 0;
-			}
-			else if (_findOutPhonesMode == 1 && _isDeviceDetected && digitalRead(interruptExternalMotionPin))
+			if (_findOutPhonesMode == 1 && _isPhoneDeviceDetected && isGarageDoorClosed() && _doorState == 0)
 			{
 				blinkLed();
 				buzzerFunction(buzzerPin, 100, 1000);
-				//Serial.println("Apertura garage");
+				Serial.println("Apertura garage");
 				_doorState = 1;
 				//Aggiungere codice che gestisce interrupt pin aperto.
 				reedRelaySensorActivity(relayPin);
-				delay(10000);
+				delay(30000);
 			}
-			else if ((isAM() && hour() < 6) && !_isDeviceDetected)
+			else if ((isAM() && hour() < 6) && !_isPhoneDeviceDetected)
 			{
-				if ((millis() - _pirSensorTime) > 10000)
+				if ((millis() - _pirSensorTime) > 30000)
 				{
 					_pirSensorTime = millis();
 				}
-				else if ((millis() - _pirSensorTime) > 5000)
+				else if ((millis() - _pirSensorTime) > 25000)
 				{
 					blinkLed();
 					String message = "P01N";
@@ -1294,6 +1302,16 @@ void pirSensorActivity()
 		callSim900('1');
 		}*/
 	}
+}
+
+bool isThereSomeOneInFrontOfGarage()
+{
+	return digitalRead(pirSensor2Pin);
+}
+
+bool isGarageDoorClosed()
+{
+	return digitalRead(interruptExternalMotionPin);
 }
 
 void reedRelaySensorActivity(uint8_t pin)
