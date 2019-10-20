@@ -235,7 +235,7 @@ static const uint8_t voltagePin = A1;
 
 static const uint8_t interruptExternalMotionPin = 3;
 
-static const uint8_t relayPin = 5;
+static const uint8_t relayPin = A4;
 
 static const uint8_t pirSensor2Pin = A5;
 
@@ -363,6 +363,8 @@ void initilizeEEPromData()
 
 void inizializePins()
 {
+	pinMode(relayPin, OUTPUT);
+	digitalWrite(relayPin, LOW);
 	pinMode(_pin_powerLed, OUTPUT);
 	pinMode(buzzerPin, OUTPUT);
 	pinMode(softwareSerialExternalDevicesPinAlarm, OUTPUT);
@@ -1272,16 +1274,16 @@ void pirSensorActivity()
 			}
 			else if ((isAM() && hour() < 6) && !_isPhoneDeviceDetected)
 			{
-				if ((millis() - _pirSensorTime) > 30000)
+				/*if ((millis() - _pirSensorTime) > 30000)
 				{
 					_pirSensorTime = millis();
 				}
 				else if ((millis() - _pirSensorTime) > 25000)
-				{
+				{*/
 					blinkLed();
 					String message = "P01N";
 					sendMessageToComunicatorDevice(message);
-				}
+				//}
 			}
 
 		}
@@ -1316,7 +1318,6 @@ bool isGarageDoorClosed()
 
 void reedRelaySensorActivity(uint8_t pin)
 {
-	pinMode(pin, OUTPUT);
 	digitalWrite(pin, HIGH);
 	delay(1000);
 	digitalWrite(pin, LOW);
