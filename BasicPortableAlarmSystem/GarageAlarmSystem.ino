@@ -61,7 +61,7 @@ ActivityManager* _delayForTemperature = new ActivityManager(60);
 
 ActivityManager* _delayForVoltage = new ActivityManager(60);
 
-ActivityManager* _delayForFindPhone = new ActivityManager(30);
+//ActivityManager* _delayForFindPhone = new ActivityManager(30);
 
 //ActivityManager* _delayForSignalStrength = new ActivityManager(30);
 
@@ -565,11 +565,11 @@ void loop()
 
 	if ((!(_isOnMotionDetect && _isAlarmOn)) || _findOutPhonesMode != 0)
 	{
-		if (_delayForFindPhone->IsDelayTimeFinished(true))
-		{
+		/*if (_delayForFindPhone->IsDelayTimeFinished(true))
+		{*/
 			//Serial.println("Sto cercando");
 			isFindOutPhonesONAndSetBluetoothInMasterMode();
-		}
+		//}
 	}
 	//if (!(_isOnMotionDetect && _isAlarmOn))
 	//{
