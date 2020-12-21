@@ -298,6 +298,8 @@ void setup()
 	softwareSerial->begin(19200);
 
 	blinkLed();
+
+	btSerial->getVersion();
 }
 
 String getSerialMessage()
@@ -332,7 +334,7 @@ void initilizeEEPromData()
 
 
 	eepromRW->eeprom_read_string(_addressStartDeviceAddress, _bufDeviceAddress, BUFSIZEDEVICEADDRESS);
-	_deviceAddress = String(_bufDeviceAddress);
+	_deviceAddress = "00" + String(_bufDeviceAddress);
 
 	eepromRW->eeprom_read_string(_addressStartDeviceName, _bufDeviceName, BUFSIZEDEVICENAME);
 	_deviceName = String(_bufDeviceName);
