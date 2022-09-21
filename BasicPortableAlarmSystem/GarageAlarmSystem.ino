@@ -55,7 +55,7 @@ int temp;
 #include <TimeLib.h>
 
 
-char version[15] = "-G01 1.00-alfa";
+char version[15] = "-G01 1.10-alfa";
 
 ActivityManager* _delayForTemperature = new ActivityManager(60);
 
