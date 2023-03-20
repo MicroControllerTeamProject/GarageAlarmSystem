@@ -55,7 +55,7 @@ int temp;
 #include <TimeLib.h>
 
 
-char version[15] = "-G01 1.00-alfa";
+char version[15] = "-G01 1.10-alfa";
 
 ActivityManager* _delayForTemperature = new ActivityManager(60);
 
@@ -298,6 +298,10 @@ void setup()
 	softwareSerial->begin(19200);
 
 	blinkLed();
+
+	btSerial->getVersion();
+
+	//Serial.println(F("START"));
 }
 
 String getSerialMessage()
@@ -313,10 +317,7 @@ String getSerialMessage()
 
 void initilizeEEPromData()
 {
-	//EEPROM.write(0, 1);
 	LSG_EEpromRW* eepromRW = new LSG_EEpromRW();
-
-
 
 	eepromRW->eeprom_read_string(_addressStartFindOutPhonesON, _bufFindOutPhonesON, BUFSIZEFINDOUTPHONESON);
 	_findOutPhonesMode = atoi(&_bufFindOutPhonesON[0]);
@@ -324,15 +325,12 @@ void initilizeEEPromData()
 	eepromRW->eeprom_read_string(_addressStartBufPirSensorIsON, _bufPirSensorIsON, BUFSIZEPIRSENSORISON);
 	_isPIRSensorActivated = atoi(&_bufPirSensorIsON[0]);
 
-	/*eepromRW->eeprom_read_string(_addressStartBufPrecisionNumber, _bufPrecisionNumber, BUFSIZEPRECISION);
-	_precision = atoi(&_bufPrecisionNumber[0]);*/
-
 	eepromRW->eeprom_read_string(_addressStartBufTemperatureMax, _bufTemperatureMax, BUFSIZETEMPERATUREMAX);
 	_tempMax = atoi(_bufTemperatureMax);
 
 
 	eepromRW->eeprom_read_string(_addressStartDeviceAddress, _bufDeviceAddress, BUFSIZEDEVICEADDRESS);
-	_deviceAddress = String(_bufDeviceAddress);
+	_deviceAddress = "DC" + String(_bufDeviceAddress);
 
 	eepromRW->eeprom_read_string(_addressStartDeviceName, _bufDeviceName, BUFSIZEDEVICENAME);
 	_deviceName = String(_bufDeviceName);
@@ -343,10 +341,6 @@ void initilizeEEPromData()
 	eepromRW->eeprom_read_string(_addressStartDeviceName2, _bufDeviceName2, BUFSIZEDEVICENAME);
 	_deviceName2 = String(_bufDeviceName2);
 
-
-	//eepromRW->eeprom_read_string(_addressApn, _bufApn, BUFSIZEAPN);
-	//_apn = String(_bufApn);
-	//_apn.trim();
 
 	eepromRW->eeprom_read_string(_addressOffSetTemperature, _bufOffSetTemperature, BUFSIZEOFFSETTEMPERATURE);
 	_offSetTempValue = atoi(_bufOffSetTemperature);
@@ -372,7 +366,6 @@ void inizializePins()
 
 void inizializeInterrupts()
 {
-	/*attachInterrupt(0, motionTiltInternalInterrupt, RISING);*/
 	attachInterrupt(1, motionTiltExternalInterrupt, RISING);
 }
 
@@ -382,39 +375,8 @@ void motionTiltExternalInterrupt() {
 	}
 }
 
-
-//void turnOffBluetoohIfTimeIsOver()
-//{
-//	if (_findOutPhonesMode == 0
-//		&& (millis() > _timeToTurnOfBTAfterPowerOn)
-//		&& btSerial->isBlueToothOn()
-//		&& _isBTSleepON
-//		)
-//	{
-//		btSerial->turnOffBlueTooth();
-//		digitalWrite(13, HIGH);
-//		delay(5000);
-//		digitalWrite(13, LOW);
-//	}
-//}
-
-//void turnOnBlueToothIfMotionIsDetected()
-//{
-//	if (_isOnMotionDetect
-//		&& !_isAlarmOn
-//		&& btSerial->isBlueToothOff()
-//		&& _isBTSleepON
-//		)
-//	{
-//		_isOnMotionDetect = false;
-//		turnOnBlueToothAndSetTurnOffTimer(false);
-//	}
-//}
-
 bool isFindOutPhonesONAndSetBluetoothInMasterMode()
 {
-	//if (_isDisableCall) { return; }
-
 	if ((_findOutPhonesMode == 1 || _findOutPhonesMode == 2) && (millis() > _timeAfterPowerOnForBTFinder))
 	{
 		if (_findOutPhonesMode == 1 && !_isAlarmOn)
@@ -428,30 +390,11 @@ bool isFindOutPhonesONAndSetBluetoothInMasterMode()
 			_isMasterMode = true;
 		}
 
-		/*	PIRSensor* pirSensor = new PIRSensor(0, A5, 0, 0, "PirSensor01");
-		if (humanDetectedWithFindOutPhonesON = 0 && _isPIRSensorActivated && pirSensor->isHumanDetected())
-		{
-		humanDetectedWithFindOutPhonesON = millis();
-		}
-		else if (!pirSensor->isHumanDetected())
-		{
-		humanDetectedWithFindOutPhonesON = 0;
-		}*/
-		/*if (IsDeviceDetected(String(_bufDeviceAddress), String(_bufDeviceName)))*/
-
-	/*	uint8_t i = 0;
-		while (!isDeviceDetected || i < 5)
-		{
-			isDeviceDetected = btSerial->IsDeviceDetected(_deviceAddress, _deviceName);
-			i++;
-		}
-		i = 0;*/
-
 		for (uint8_t i = 0; i < _delayFindMe; i++)
 		{
 			_isPhoneDeviceDetected = btSerial->IsDeviceDetected(_deviceAddress, _deviceName);
 			if (_isPhoneDeviceDetected) { break; }
-			if (_findOutPhonesMode == 1)
+			/*if (_findOutPhonesMode == 1)
 			{
 				_deviceAddress2.trim();
 				_deviceName2.trim();
@@ -459,66 +402,40 @@ bool isFindOutPhonesONAndSetBluetoothInMasterMode()
 					_isPhoneDeviceDetected = btSerial->IsDeviceDetected(_deviceAddress2, _deviceName2);
 					if (_isPhoneDeviceDetected) { break; };
 				}
-			}
+			}*/
 		}
 
-		//bool isHumanDetected = pirSensor->isHumanDetected();
-		if (_isPhoneDeviceDetected
-			//(isDeviceDetected
-			//	/*&& (millis() - humanDetectedWithFindOutPhonesON >= 7000)
-			//	&& humanDetectedWithFindOutPhonesON != 0*/
-			//	&&
-			//	isHumanDetected
-			//	&& _isPIRSensorActivated)
-			//||
-			//(
-			//	!_isPIRSensorActivated
-			//	&&
-
-			)
-			//)
+		if (_isPhoneDeviceDetected)
 		{
 			blinkLed();
-			//reedRelaySensorActivity(A2);
 		}
-		else
-		{
-			if (_findOutPhonesMode == 2)
-			{
-				//callSim900();
-				//delay(10000);
-				//_isMasterMode = false;
-			}
-		}
-
-		/*	delete(pirSensor);*/
 		return _isPhoneDeviceDetected;
 	}
 }
 
-void readMemoryAtRunTime()
-{
-	//this is necessary to wait for the Arduino Leonardo to get the serial interface up and running
-#if defined(__ATmega32U4__)
-	while (!Serial);
-#else
-	delay(2000);
-#endif
-
-#ifndef RAMSTART
-	serialPrint("SRAM and .data space start: ", (int)&__data_start);
-#else
-	serialPrint("SRAM and .data space start: ", RAMSTART);
-#endif
-	serialPrint(".data space end/.bss start: ", (int)&__data_end); //same as "(int)&__bss_start)"
-	serialPrint(".bss space end/HEAP start: ", (int)&__heap_start); //same as "(int)&__bss_end);"
-	serialPrint("HEAP end: ", (int)__brkval);
-	int tempRam = freeRam();
-	serialPrint("STACK start: ", temp);
-	serialPrint("STACK and SRAM end: ", RAMEND);
-	serialPrint("Free memory at the moment: ", tempRam);
-	Serial.println("----------------------------------------------------------------------------------");
-}
+//void readMemoryAtRunTime()
+//{
+//	//this is necessary to wait for the Arduino Leonardo to get the serial interface up and running
+//#if defined(__ATmega32U4__)
+//	while (!Serial);
+//#else
+//	delay(2000);
+//#endif
+//
+//#ifndef RAMSTART
+//	serialPrint("SRAM and .data space start: ", (int)&__data_start);
+//#else
+//	serialPrint("SRAM and .data space start: ", RAMSTART);
+//#endif
+//	serialPrint(".data space end/.bss start: ", (int)&__data_end); //same as "(int)&__bss_start)"
+//	serialPrint(".bss space end/HEAP start: ", (int)&__heap_start); //same as "(int)&__bss_end);"
+//	serialPrint("HEAP end: ", (int)__brkval);
+//	int tempRam = freeRam();
+//	serialPrint("STACK start: ", temp);
+//	serialPrint("STACK and SRAM end: ", RAMEND);
+//	serialPrint("Free memory at the moment: ", tempRam);
+//	Serial.println("----------------------------------------------------------------------------------");
+//}
 
 char problematicDevice[4];
 
@@ -1246,11 +1163,11 @@ void pirSensorActivity()
 		if (deltaTimeForOpenTheDoor == 0)
 		{
 			deltaTimeForOpenTheDoor = millis();
-			Serial.println("Attesa per riapertura garage");
+			//Serial.println("Attesa per riapertura garage");
 		}
 		if (millis() - deltaTimeForOpenTheDoor > 60000)
 		{
-			Serial.println("Garage pronto per riapertura");
+			//Serial.println("Garage pronto per riapertura");
 			_doorState = 0;
 			deltaTimeForOpenTheDoor = 0;
 		}
@@ -1266,7 +1183,7 @@ void pirSensorActivity()
 			{
 				blinkLed();
 				buzzerFunction(buzzerPin, 100, 1000);
-				Serial.println("Apertura garage");
+				//Serial.println("Apertura garage");
 				_doorState = 1;
 				//Aggiungere codice che gestisce interrupt pin aperto.
 				reedRelaySensorActivity(relayPin);
@@ -1274,35 +1191,12 @@ void pirSensorActivity()
 			}
 			else if ((isAM() && hour() < 6) && !_isPhoneDeviceDetected)
 			{
-				/*if ((millis() - _pirSensorTime) > 30000)
-				{
-					_pirSensorTime = millis();
-				}
-				else if ((millis() - _pirSensorTime) > 25000)
-				{*/
 					blinkLed();
 					String message = "P01N";
 					sendMessageToComunicatorDevice(message);
-				//}
 			}
 
 		}
-		/*unsigned int count0 = 0;
-		for (unsigned int i = 0; i < 110; i++)
-		{
-		if (digitalRead(5))
-		{
-		count0++;
-		}
-		}
-
-		if (count0 > 100)
-		{
-		blinkLed();
-		_whatIsHappened = F("P");
-		reedRelaySensorActivity(A4);
-		callSim900('1');
-		}*/
 	}
 }
 
