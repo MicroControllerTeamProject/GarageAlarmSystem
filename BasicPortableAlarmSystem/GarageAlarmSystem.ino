@@ -74,6 +74,7 @@ MySim900* mySim900;
 String _oldPassword = "";
 
 String _newPassword = "";
+
 //
 //const byte _addressStartBufPhoneNumber = 1;
 //
@@ -110,7 +111,6 @@ const byte _addressExternalInterruptIsOn = 96;
 const byte _addressStartDeviceAddress2 = 98;
 
 const byte _addressStartDeviceName2 = 110;
-
 
 uint8_t _isPIRSensorActivated = 0;
 
@@ -188,39 +188,49 @@ bool _isPhoneDeviceDetected = false;
 //char _bufPrecisionNumber[BUFSIZEPRECISION];
 //
 const int BUFSIZETEMPERATUREISON = 2;
+
 char _bufTemperatureIsOn[BUFSIZETEMPERATUREISON];
 
 const int BUFSIZEPIRSENSORISON = 2;
+
 char _bufPirSensorIsON[BUFSIZEPIRSENSORISON];
 
 const int BUFSIZEFINDOUTPHONESON = 2;
+
 char _bufFindOutPhonesON[BUFSIZEFINDOUTPHONESON];
 
 //const int BUFSIZEDBPHONEON = 2;
 //char _bufDbPhoneON[BUFSIZEDBPHONEON];
 
 const int BUFSIZETEMPERATUREMAX = 3;
+
 char _bufTemperatureMax[BUFSIZETEMPERATUREMAX];
 
 const int BUFSIZEDEVICEADDRESS = 13;
+
 char _bufDeviceAddress[BUFSIZEDEVICEADDRESS];
+
 char _bufDeviceAddress2[BUFSIZEDEVICEADDRESS];
 
-
 const int BUFSIZEDEVICENAME = 15;
+
 char _bufDeviceName[BUFSIZEDEVICENAME];
+
 char _bufDeviceName2[BUFSIZEDEVICENAME];
 
 //const int BUFSIZEAPN = 25;
 //char _bufApn[BUFSIZEAPN];
 
 const int BUFSIZEOFFSETTEMPERATURE = 5;
+
 char _bufOffSetTemperature[BUFSIZEOFFSETTEMPERATURE];
 
 const int BUFSIZEDELAYFINDME = 2;
+
 char _bufDelayFindMe[BUFSIZEDELAYFINDME];
 
 const int BUFSIZEEXTERNALINTERRUPTISON = 2;
+
 char _bufExternalInterruptIsON[BUFSIZEEXTERNALINTERRUPTISON];
 
 //---------------------------------------------       PINS USED   ----------------------------------------------------------
@@ -292,7 +302,7 @@ void setup()
 	//mySim900->WaitSMSComing();
 
 	pinMode(pirSensor2Pin, INPUT_PULLUP);
-	//pinMode(pirSensor1Pin, INPUT_PULLUP);
+
 	pinMode(softwareSerialExternalDevicesTxPort, OUTPUT);
 
 	softwareSerial->begin(19200);
@@ -302,6 +312,87 @@ void setup()
 	btSerial->getVersion();
 
 	//Serial.println(F("START"));
+}
+
+void loop()
+{
+	//if (btSerial->IsDeviceDetected(_deviceAddress, _deviceName))
+	//{
+	//	Serial.println("Eccolo!!");
+	//}
+	//return;
+
+	String receivedMessage = "";
+
+	while (!_isTimeInitialize)
+	{
+		digitalWrite(softwareSerialExternalDevicesPinAlarm, LOW);
+		receivedMessage = getSerialMessage();
+		if (receivedMessage.startsWith("H"))
+		{
+			String hour = receivedMessage.substring(1, 3);
+			String minute = (receivedMessage.substring(3, 5));
+			setTime(hour.toInt(), minute.toInt(), 1, 1, 1, 2019);
+			//Serial.print(hour); Serial.print(":"); Serial.println(minute);
+			_isTimeInitialize = true;
+		}
+	}
+
+	digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
+
+	/*digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
+
+	if (receivedMessage.startsWith("H"))
+	{
+		softwareSerial->print("t01N08.50");
+		softwareSerial->print("t02Y07.50");
+		softwareSerial->print("t03Y47.50");
+		softwareSerial->print("t04Y48.50");
+		softwareSerial->print("t05Y47.50");
+		softwareSerial->print("t06Y47.50");
+		softwareSerial->print("t07Y48.50");
+		softwareSerial->print("t08Y47.50");
+		softwareSerial->print("t09Y47.50");
+		softwareSerial->print("t10Y48.50");
+		softwareSerial->print("t11Y47.50*");
+	}*/
+
+
+	if ((!(_isOnMotionDetect && _isAlarmOn)) || _findOutPhonesMode != 0)
+	{
+		/*if (_delayForFindPhone->IsDelayTimeFinished(true))
+		{*/
+		//Serial.println("Sto cercando");
+		isFindOutPhonesONAndSetBluetoothInMasterMode();
+		//}
+	}
+	//if (!(_isOnMotionDetect && _isAlarmOn))
+	//{
+	//	turnOffBluetoohIfTimeIsOver();
+	//}
+	//if (!(_isOnMotionDetect && _isAlarmOn))
+	//{
+	//	turnOnBlueToothIfMotionIsDetected();
+	//}
+	if (!(_isOnMotionDetect && _isAlarmOn))
+	{
+		internalTemperatureActivity();
+	}
+	if (!(_isOnMotionDetect && _isAlarmOn))
+	{
+		voltageActivity();
+	}
+
+	if (!(_isOnMotionDetect && _isAlarmOn))
+	{
+		pirSensorActivity();
+	}
+	isExternalInterruptMotionDetect();
+	if (!(_isOnMotionDetect && _isAlarmOn))
+	{
+		blueToothConfigurationSystem();
+	}
+	//readMemoryAtRunTime();
 }
 
 String getSerialMessage()
@@ -443,79 +534,7 @@ char problematicDeviceValue[5];
 
 byte _doorState = 0;
 
-void loop()
-{
-	String receivedMessage = "";
-	while (!_isTimeInitialize)
-	{
-		digitalWrite(softwareSerialExternalDevicesPinAlarm, LOW);
-		receivedMessage = getSerialMessage();
-		if (receivedMessage.startsWith("H"))
-		{
-			String hour = receivedMessage.substring(1, 3);
-			String minute = (receivedMessage.substring(3, 5));
-			setTime(hour.toInt(), minute.toInt(), 1, 1, 1, 2019);
-			//Serial.print(hour); Serial.print(":"); Serial.println(minute);
-			_isTimeInitialize = true;
-		}
-	}
 
-	digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
-
-	/*digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
-
-	if (receivedMessage.startsWith("H"))
-	{
-		softwareSerial->print("t01N08.50");
-		softwareSerial->print("t02Y07.50");
-		softwareSerial->print("t03Y47.50");
-		softwareSerial->print("t04Y48.50");
-		softwareSerial->print("t05Y47.50");
-		softwareSerial->print("t06Y47.50");
-		softwareSerial->print("t07Y48.50");
-		softwareSerial->print("t08Y47.50");
-		softwareSerial->print("t09Y47.50");
-		softwareSerial->print("t10Y48.50");
-		softwareSerial->print("t11Y47.50*");
-	}*/
-
-
-	if ((!(_isOnMotionDetect && _isAlarmOn)) || _findOutPhonesMode != 0)
-	{
-		/*if (_delayForFindPhone->IsDelayTimeFinished(true))
-		{*/
-			//Serial.println("Sto cercando");
-			isFindOutPhonesONAndSetBluetoothInMasterMode();
-		//}
-	}
-	//if (!(_isOnMotionDetect && _isAlarmOn))
-	//{
-	//	turnOffBluetoohIfTimeIsOver();
-	//}
-	//if (!(_isOnMotionDetect && _isAlarmOn))
-	//{
-	//	turnOnBlueToothIfMotionIsDetected();
-	//}
-	if (!(_isOnMotionDetect && _isAlarmOn))
-	{
-		internalTemperatureActivity();
-	}
-	if (!(_isOnMotionDetect && _isAlarmOn))
-	{
-		voltageActivity();
-	}
-
-	if (!(_isOnMotionDetect && _isAlarmOn))
-	{
-		pirSensorActivity();
-	}
-	isExternalInterruptMotionDetect();
-	if (!(_isOnMotionDetect && _isAlarmOn))
-	{
-		blueToothConfigurationSystem();
-	}
-	//readMemoryAtRunTime();
-}
 
 void isExternalInterruptMotionDetect()
 {
@@ -1176,7 +1195,7 @@ void pirSensorActivity()
 	{
 		if (isThereSomeOneInFrontOfGarage())
 		{
-			//Serial.println("isThereSomeOneInFrontOfGarage");
+			Serial.println("isThereSomeOneInFrontOfGarage");
 			_whatIsHappened = F("P");
 
 			if (_findOutPhonesMode == 1 && _isPhoneDeviceDetected && isGarageDoorClosed() && _doorState == 0)
