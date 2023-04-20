@@ -18,6 +18,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="GarageAlarmSystem.ino" />
+    <ClCompile Include="GarageAlarmSystem.ino" />
   </ItemGroup>
 </Project>

@@ -170,9 +170,9 @@ bool _isMasterMode = false;
 
 unsigned long _pirSensorTime = 0;
 
-unsigned long _timeToTurnOfBTAfterPowerOn = 300000;
+//unsigned long _timeToTurnOfBTAfterPowerOn = 300000;
 
-unsigned long _timeAfterPowerOnForBTFinder = 300000;
+unsigned long _timeForSetBTConfiguration = 300000;
 
 //String _apn = "";
 
@@ -265,9 +265,11 @@ static const byte _pin_rxSIM900 = 7;
 
 static const byte _pin_txSIM900 = 8;
 
-SoftwareSerial *softwareSerial = new SoftwareSerial(softwareSerialExternalDevicesRxPort, softwareSerialExternalDevicesTxPort);
+SoftwareSerial* softwareSerial = new SoftwareSerial(softwareSerialExternalDevicesRxPort, softwareSerialExternalDevicesTxPort);
 
 bool _isTimeInitialize = false;
+
+byte _doorState = 0;
 
 void setup()
 {
@@ -309,93 +311,80 @@ void setup()
 
 	blinkLed();
 
-	btSerial->getVersion();
+	//btSerial->getVersion();
 
 	//Serial.println(F("START"));
 }
 
 void loop()
 {
-	//if (btSerial->IsDeviceDetected(_deviceAddress, _deviceName))
-	//{
-	//	Serial.println("Eccolo!!");
-	//}
-	//return;
-
-	String receivedMessage = "";
-
 	while (!_isTimeInitialize)
 	{
+		String receivedMessage = "";
+
 		digitalWrite(softwareSerialExternalDevicesPinAlarm, LOW);
-		receivedMessage = getSerialMessage();
+
+		receivedMessage = getSerialMessageFromExternalDevice();
+	
 		if (receivedMessage.startsWith("H"))
 		{
 			String hour = receivedMessage.substring(1, 3);
 			String minute = (receivedMessage.substring(3, 5));
 			setTime(hour.toInt(), minute.toInt(), 1, 1, 1, 2019);
-			//Serial.print(hour); Serial.print(":"); Serial.println(minute);
+			Serial.print(hour); Serial.print(":"); Serial.println(minute);
+			Serial.println(F("data received"));
 			_isTimeInitialize = true;
+			digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
+			_timeForSetBTConfiguration = millis() + (3UL * 60UL * 1000UL);
+			buzzerFunction(buzzerPin, 1000, 500);
+			buzzerFunction(buzzerPin, 1200, 500);
+			buzzerFunction(buzzerPin, 1400, 500);
 		}
 	}
 
-	digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
-
-	/*digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
-
-	if (receivedMessage.startsWith("H"))
-	{
-		softwareSerial->print("t01N08.50");
-		softwareSerial->print("t02Y07.50");
-		softwareSerial->print("t03Y47.50");
-		softwareSerial->print("t04Y48.50");
-		softwareSerial->print("t05Y47.50");
-		softwareSerial->print("t06Y47.50");
-		softwareSerial->print("t07Y48.50");
-		softwareSerial->print("t08Y47.50");
-		softwareSerial->print("t09Y47.50");
-		softwareSerial->print("t10Y48.50");
-		softwareSerial->print("t11Y47.50*");
-	}*/
-
-
-	if ((!(_isOnMotionDetect && _isAlarmOn)) || _findOutPhonesMode != 0)
-	{
-		/*if (_delayForFindPhone->IsDelayTimeFinished(true))
-		{*/
-		//Serial.println("Sto cercando");
-		isFindOutPhonesONAndSetBluetoothInMasterMode();
-		//}
-	}
-	//if (!(_isOnMotionDetect && _isAlarmOn))
-	//{
-	//	turnOffBluetoohIfTimeIsOver();
-	//}
-	//if (!(_isOnMotionDetect && _isAlarmOn))
-	//{
-	//	turnOnBlueToothIfMotionIsDetected();
-	//}
-	if (!(_isOnMotionDetect && _isAlarmOn))
-	{
-		internalTemperatureActivity();
-	}
-	if (!(_isOnMotionDetect && _isAlarmOn))
+	if (!(_isOnMotionDetect))
 	{
 		voltageActivity();
 	}
 
-	if (!(_isOnMotionDetect && _isAlarmOn))
+	//disable data require.
+	
+	//On start to configure bluetooth parameters      ----- STOP CODE FOR BLUETOOTH CONFIGURATION
+	if (millis() < _timeForSetBTConfiguration)
+	{
+		blueToothConfigurationSystem();
+		return;
+	}
+
+	//Serial.println(F("continue"));
+
+	//When hour was sent and bluetooth time is finished always turn on alarm
+	_isAlarmOn = true;
+
+	if (_findOutPhonesMode == 1 && _isMasterMode == false)
+	{
+		btSerial->Reset_To_Master_Mode();
+		_isMasterMode = true;
+		buzzerFunction(buzzerPin, 1000, 500);
+		buzzerFunction(buzzerPin, 1200, 500);
+		buzzerFunction(buzzerPin, 1400, 500);
+	}
+
+	isExternalInterruptMotionDetect();
+
+	if (!(_isOnMotionDetect))
+	{
+		internalTemperatureActivity();
+	}
+
+
+	if (!(_isOnMotionDetect))
 	{
 		pirSensorActivity();
 	}
-	isExternalInterruptMotionDetect();
-	if (!(_isOnMotionDetect && _isAlarmOn))
-	{
-		blueToothConfigurationSystem();
-	}
-	//readMemoryAtRunTime();
 }
 
-String getSerialMessage()
+String getSerialMessageFromExternalDevice()
 {
 	String recevedMessage = "";
 	if (softwareSerial->available() > 0)
@@ -466,21 +455,12 @@ void motionTiltExternalInterrupt() {
 	}
 }
 
-bool isFindOutPhonesONAndSetBluetoothInMasterMode()
+bool isMyPhoneDetected()
 {
-	if ((_findOutPhonesMode == 1 || _findOutPhonesMode == 2) && (millis() > _timeAfterPowerOnForBTFinder))
+	_isPhoneDeviceDetected = false;
+
+	if (millis() > _timeForSetBTConfiguration)
 	{
-		if (_findOutPhonesMode == 1 && !_isAlarmOn)
-		{
-			_isAlarmOn = true;
-		}
-
-		if (_isMasterMode == false)
-		{
-			btSerial->Reset_To_Master_Mode();
-			_isMasterMode = true;
-		}
-
 		for (uint8_t i = 0; i < _delayFindMe; i++)
 		{
 			_isPhoneDeviceDetected = btSerial->IsDeviceDetected(_deviceAddress, _deviceName);
@@ -504,67 +484,24 @@ bool isFindOutPhonesONAndSetBluetoothInMasterMode()
 	}
 }
 
-//void readMemoryAtRunTime()
-//{
-//	//this is necessary to wait for the Arduino Leonardo to get the serial interface up and running
-//#if defined(__ATmega32U4__)
-//	while (!Serial);
-//#else
-//	delay(2000);
-//#endif
-//
-//#ifndef RAMSTART
-//	serialPrint("SRAM and .data space start: ", (int)&__data_start);
-//#else
-//	serialPrint("SRAM and .data space start: ", RAMSTART);
-//#endif
-//	serialPrint(".data space end/.bss start: ", (int)&__data_end); //same as "(int)&__bss_start)"
-//	serialPrint(".bss space end/HEAP start: ", (int)&__heap_start); //same as "(int)&__bss_end);"
-//	serialPrint("HEAP end: ", (int)__brkval);
-//	int tempRam = freeRam();
-//	serialPrint("STACK start: ", temp);
-//	serialPrint("STACK and SRAM end: ", RAMEND);
-//	serialPrint("Free memory at the moment: ", tempRam);
-//	Serial.println("----------------------------------------------------------------------------------");
-//}
-
-char problematicDevice[4];
-
-char problematicDeviceValue[5];
-
-byte _doorState = 0;
-
-
 
 void isExternalInterruptMotionDetect()
 {
-	/*if (_findOutPhonesMode == 2 || _isPIRSensorActivated) {*/
-	if (_findOutPhonesMode == 2) {
-		_isOnMotionDetect = false;
-		return;
-	}
-
 	if ((_isOnMotionDetect && _isAlarmOn) || (_isAlarmOn && _isExternalInterruptOn && !digitalRead(interruptExternalMotionPin))) //&& !isOnConfiguration)									 /*if(true)*/
 	{
 		detachInterrupt(0);
 		detachInterrupt(1);
 		_whatIsHappened = F("M");
 		String message = F("M01N");
-		if (_findOutPhonesMode == 1)
-		{
-			if (!_isPhoneDeviceDetected)
-			{
-				blinkLed();
-				sendMessageToComunicatorDevice(message);
-			}
-		}
-		else
+
+		isMyPhoneDetected();
+
+		if (!_isPhoneDeviceDetected)
 		{
 			blinkLed();
 			sendMessageToComunicatorDevice(message);
-
 		}
-		
+
 		EIFR |= 1 << INTF1; //clear external interrupt 1
 		EIFR |= 1 << INTF0; //clear external interrupt 0
 		sei();
@@ -574,23 +511,23 @@ void isExternalInterruptMotionDetect()
 	}
 }
 
-void turnOnBlueToothAndSetTurnOffTimer(bool isFromSMS)
-{
-	//TODO: Fare metodo su mybluetooth per riattivarlo.
-	//Essenziale tutta la trafila di istruzioni altrimenti non si riattiva bluetooth
-	Serial.flush();
-	btSerial->Reset_To_Slave_Mode();
-	//btSerial->ReceveMode();
-	//btSerial->turnOnBlueTooth();
-	if (_findOutPhonesMode == 0 || isFromSMS)
-	{
-		btSerial->ReceveMode();
-		btSerial->turnOnBlueTooth();
-		_timeToTurnOfBTAfterPowerOn = millis() + 300000;
-		_timeAfterPowerOnForBTFinder = millis() + 120000;
-	}
-	_isMasterMode = false;
-}
+//void turnOnBlueToothAndSetTurnOffTimer(bool isFromSMS)
+//{
+//	//TODO: Fare metodo su mybluetooth per riattivarlo.
+//	//Essenziale tutta la trafila di istruzioni altrimenti non si riattiva bluetooth
+//	Serial.flush();
+//	btSerial->Reset_To_Slave_Mode();
+//	//btSerial->ReceveMode();
+//	//btSerial->turnOnBlueTooth();
+//	if (_findOutPhonesMode == 0 || isFromSMS)
+//	{
+//		btSerial->ReceveMode();
+//		btSerial->turnOnBlueTooth();
+//		//_timeToTurnOfBTAfterPowerOn = millis() + 300000;
+//		_timeForSetBTConfiguration = millis() + 120000;
+//	}
+//	_isMasterMode = false;
+//}
 
 void blinkLed()
 {
@@ -783,7 +720,7 @@ void blueToothConfigurationSystem()
 			//digitalWrite(_pin_powerLed, HIGH);
 			_isAlarmOn = true;
 			_isOnMotionDetect = false;
-			_timeAfterPowerOnForBTFinder = 0;
+			_timeForSetBTConfiguration = 0;
 			//btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Portable Alarm ON"), BlueToothCommandsUtil::Title));
 		/*	btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Alarm ON"), BlueToothCommandsUtil::Message));
 			btSerial->println(BlueToothCommandsUtil::CommandConstructor(BlueToothCommandsUtil::EndTrasmission));*/
@@ -1174,7 +1111,9 @@ boolean isValidNumber(String str)
 	}
 	return false;
 }
+
 unsigned long deltaTimeForOpenTheDoor = 0;
+
 void pirSensorActivity()
 {
 	if (isGarageDoorClosed() && _doorState == 1)
@@ -1184,7 +1123,7 @@ void pirSensorActivity()
 			deltaTimeForOpenTheDoor = millis();
 			//Serial.println("Attesa per riapertura garage");
 		}
-		if (millis() - deltaTimeForOpenTheDoor > 60000)
+		if ((millis() - deltaTimeForOpenTheDoor) > 45000)
 		{
 			//Serial.println("Garage pronto per riapertura");
 			_doorState = 0;
@@ -1195,7 +1134,10 @@ void pirSensorActivity()
 	{
 		if (isThereSomeOneInFrontOfGarage())
 		{
-			Serial.println("isThereSomeOneInFrontOfGarage");
+			//Serial.println("isThereSomeOneInFrontOfGarage");
+
+			isMyPhoneDetected();
+
 			_whatIsHappened = F("P");
 
 			if (_findOutPhonesMode == 1 && _isPhoneDeviceDetected && isGarageDoorClosed() && _doorState == 0)
@@ -1206,13 +1148,13 @@ void pirSensorActivity()
 				_doorState = 1;
 				//Aggiungere codice che gestisce interrupt pin aperto.
 				reedRelaySensorActivity(relayPin);
-				delay(30000);
+				delay(60000);
 			}
 			else if ((isAM() && hour() < 6) && !_isPhoneDeviceDetected)
 			{
-					blinkLed();
-					String message = "P01N";
-					sendMessageToComunicatorDevice(message);
+				blinkLed();
+				String message = "P01N";
+				sendMessageToComunicatorDevice(message);
 			}
 
 		}
@@ -1249,7 +1191,7 @@ void internalTemperatureActivity()
 			_whatIsHappened = F("T");
 			String message = "TINN" + String((uint8_t)getTemp());
 			sendMessageToComunicatorDevice(message);
-			//callSim900();
+			
 		}
 		/*delete chipTemp;*/
 	}
@@ -1257,11 +1199,10 @@ void internalTemperatureActivity()
 
 void voltageActivity()
 {
-
 	if (_delayForVoltage->IsDelayTimeFinished(true))
 	{
 		//Serial.println(analogRead(voltagePin));
-		_voltageValue = (5.1 / 1023.00) * analogRead(voltagePin);
+		_voltageValue = (5.1 / 1024.00) * analogRead(voltagePin);
 		//Serial.println(_voltageValue);
 		_voltageMinValue = 3.25;
 		if (_voltageValue < _voltageMinValue)
@@ -1276,8 +1217,8 @@ void voltageActivity()
 
 void activateFunctionAlarm()
 {
-	_timeToTurnOfBTAfterPowerOn = 0;
-	_timeAfterPowerOnForBTFinder = 0;
+	//_timeToTurnOfBTAfterPowerOn = 0;
+	_timeForSetBTConfiguration = 0;
 	//_isDisableCall = false;
 	_isAlarmOn = true;
 	//callSim900();
@@ -1345,12 +1286,12 @@ double getTemp(void)
 //}
 
 //print function
-void serialPrint(String tempString, int tempData) {
-	Serial.print(tempString);
-	Serial.print(tempData, DEC);
-	Serial.print(" $");
-	Serial.println(tempData, HEX);
-}
+//void serialPrint(String tempString, int tempData) {
+//	Serial.print(tempString);
+//	Serial.print(tempData, DEC);
+//	Serial.print(" $");
+//	Serial.println(tempData, HEX);
+//}
 
 //computes the free memory (from JeeLabs)
 int freeRam() {
@@ -1379,8 +1320,9 @@ void sendMessageToComunicatorDevice(String message)
 	digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
 }
 
-void buzzerFunction(byte buzzerPin,int frequency,int time)
+void buzzerFunction(byte buzzerPin, int frequency, int time)
 {
 	tone(buzzerPin, frequency, time);
+	delay(time * 2);
 }
 
