@@ -67,15 +67,9 @@ ActivityManager* _delayForVoltage = new ActivityManager(5 * 60);
 
 //ActivityManager* _delayForGetDataFromExternalDevice = new ActivityManager(30);
 
-
 String _oldPassword = "";
 
 String _newPassword = "";
-
-//
-//const byte _addressStartBufPhoneNumber = 1;
-//
-//const byte _addressStartBufPrecisionNumber = 12;
 
 const byte _addressStartBufTemperatureIsOn = 14;
 
@@ -91,13 +85,8 @@ const byte _addressStartFindOutPhonesON = 48;
 
 const byte _addressStartBTSleepIsON = 50;
 
-//const byte _addressDBPhoneIsON = 52;
-
-//const byte _addressStartBufPhoneNumberAlternative = 54;
-
 const byte _addressStartFindMode = 65;
-//
-//const byte _addressApn = 67;
+
 
 const byte _addressOffSetTemperature = 92;
 
@@ -113,31 +102,16 @@ uint8_t _isPIRSensorActivated = 0;
 
 bool _isBlueLedDisable = false;
 
-//bool _isDisableCall = false;
-
 bool _isOnMotionDetect = false;
-
-//char _prefix[4] = "+39";
 
 bool _isAlarmOn = false;
 
-//String _phoneNumber;
-
-//char _phoneNumber[11];
-
-//String _phoneNumberAlternative;
-
-//char _phoneNumberAlternative[11];
-
 String _whatIsHappened = "";
 
-//uint8_t _isTemperatureCheckOn = 0;
 
 uint8_t _isBTSleepON = 1;
 
 uint8_t _isExternalInterruptOn = 0;
-
-//uint8_t _phoneNumbers = 0;
 
 uint8_t _findOutPhonesMode = 0;
 
@@ -173,6 +147,8 @@ unsigned long _timeForSetBTConfiguration = 0;
 
 bool _isPhoneDeviceDetected = false;
 
+bool isBuzzerDisable = false;
+
 //const int BUFSIZEPHONENUMBER = 11;
 ////char _bufPhoneNumber[BUFSIZEPHONENUMBER];
 //
@@ -194,9 +170,6 @@ const int BUFSIZEFINDOUTPHONESON = 2;
 
 char _bufFindOutPhonesON[BUFSIZEFINDOUTPHONESON];
 
-//const int BUFSIZEDBPHONEON = 2;
-//char _bufDbPhoneON[BUFSIZEDBPHONEON];
-
 const int BUFSIZETEMPERATUREMAX = 3;
 
 char _bufTemperatureMax[BUFSIZETEMPERATUREMAX];
@@ -213,9 +186,6 @@ char _bufDeviceName[BUFSIZEDEVICENAME];
 
 char _bufDeviceName2[BUFSIZEDEVICENAME];
 
-//const int BUFSIZEAPN = 25;
-//char _bufApn[BUFSIZEAPN];
-
 const int BUFSIZEOFFSETTEMPERATURE = 5;
 
 char _bufOffSetTemperature[BUFSIZEOFFSETTEMPERATURE];
@@ -227,9 +197,6 @@ char _bufDelayFindMe[BUFSIZEDELAYFINDME];
 const int BUFSIZEEXTERNALINTERRUPTISON = 2;
 
 char _bufExternalInterruptIsON[BUFSIZEEXTERNALINTERRUPTISON];
-
-
-
 
 static const uint8_t buzzerPin = 9;
 
@@ -318,18 +285,31 @@ void loop()
 
 		receivedMessage = getSerialMessageFromExternalDevice();
 
+		//receivedMessage = "H1700";
+
 		if (receivedMessage.startsWith("H"))
 		{
 			String hour = receivedMessage.substring(1, 3);
+
 			String minute = (receivedMessage.substring(3, 5));
+
 			setTime(hour.toInt(), minute.toInt(), 1, 1, 1, 2019);
+
 			//Serial.print(F("got dateTime: ")); Serial.print(hour); Serial.print(":"); Serial.println(minute);
+
 			_isTimeInitialize = true;
+
 			digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
-			_timeForSetBTConfiguration = millis() + (5UL * 60UL * 1000UL);
+
+			_timeForSetBTConfiguration = millis() + (/*0.1F*/3UL * 60UL * 1000UL);
+
 			buzzerFunction(buzzerPin, 1000, 500);
+
 			buzzerFunction(buzzerPin, 1200, 500);
+
 			buzzerFunction(buzzerPin, 1400, 500);
+
+			//Serial.println(F("startBT"));
 		}
 	}
 
@@ -353,6 +333,7 @@ void loop()
 
 	if (_findOutPhonesMode == 1 && _isMasterMode == false)
 	{
+		//Serial.println(F("endBT"));
 		//btSerial.Reset_To_Master_Mode();
 		btSerial.findModeV3();
 		_isMasterMode = true;
@@ -360,6 +341,8 @@ void loop()
 		buzzerFunction(buzzerPin, 1200, 500);
 		buzzerFunction(buzzerPin, 1400, 500);
 	}
+
+	resetTimeAlarm();
 
 	isExternalInterruptMotionDetect();
 
@@ -480,29 +463,54 @@ bool isMyPhoneDetected()
 	return false;
 }
 
+bool isASecondInterrupts = false;
+
+unsigned long timeAlarm = 0;
+
+void resetTimeAlarm()
+{
+	if ((millis() - timeAlarm) > (10UL * 60UL * 1000UL))
+	{
+		isASecondInterrupts = false;
+		timeAlarm = 0;
+	}
+}
+
 void isExternalInterruptMotionDetect()
 {
 	if ((_isOnMotionDetect && _isAlarmOn) || (_isAlarmOn && _isExternalInterruptOn && !digitalRead(interruptExternalMotionPin))) //&& !isOnConfiguration)									 /*if(true)*/
 	{
-		detachInterrupt(0);
-		detachInterrupt(1);
-		_whatIsHappened = F("M");
-		String message = F("M01N");
-
-		isMyPhoneDetected();
-
-		if (!_isPhoneDeviceDetected)
+		if (!isASecondInterrupts)
 		{
+			detachInterrupt(0);
+			detachInterrupt(1);
+			isASecondInterrupts = true;
+			//Serial.println(F("step1"));
+			_isOnMotionDetect = false;
+			delay(5000);
 			blinkLed();
-			sendMessageToComunicatorDevice(message);
+			timeAlarm = millis();
 		}
+		else
+		{
+			detachInterrupt(0);
+			detachInterrupt(1);
+			//Serial.println(F("step2"));
+			_whatIsHappened = F("M");
+			String message = F("M01N");
+			isMyPhoneDetected();
 
+			if (!_isPhoneDeviceDetected)
+			{
+				blinkLed();
+				sendMessageToComunicatorDevice(message);
+			}
+			_isOnMotionDetect = false;
+		}
 		EIFR |= 1 << INTF1; //clear external interrupt 1
 		EIFR |= 1 << INTF0; //clear external interrupt 0
 		sei();
 		attachInterrupt(1, motionTiltExternalInterrupt, RISING);
-
-		_isOnMotionDetect = false;
 	}
 }
 
@@ -1319,6 +1327,7 @@ void sendMessageToComunicatorDevice(String message)
 
 void buzzerFunction(byte buzzerPin, int frequency, int time)
 {
+	if (isBuzzerDisable) return;
 	tone(buzzerPin, frequency, time);
 	delay(time * 2);
 }
