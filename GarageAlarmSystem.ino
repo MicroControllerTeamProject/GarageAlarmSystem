@@ -303,7 +303,11 @@ void loop()
 
 			setTime(hour.toInt(), minute.toInt(), 1, 1, 1, 2019);
 
-			//Serial.print(F("got dateTime: ")); Serial.print(hour); Serial.print(":"); Serial.println(minute);
+
+#ifdef _DEBUG
+			Serial.print(F("got dateTime: ")); Serial.print(hour); Serial.print(":"); Serial.println(minute);
+#endif // _DEBUG
+
 
 			_isTimeInitialize = true;
 
