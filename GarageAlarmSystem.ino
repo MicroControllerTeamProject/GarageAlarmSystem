@@ -231,7 +231,6 @@ bool _isTimeInitialize = false;
 
 byte _doorState = 0;
 
-
 MyBlueTooth btSerial(&Serial, bluetoothKeyPin, bluetoothTransistorPin, 38400, 9600);
 
 
@@ -343,7 +342,9 @@ void loop()
 		buzzerFunction(buzzerPin, 1400, 500);
 	}
 
-	resetTimeAlarm();
+	//resetTimeAlarm();
+
+	isMyPhoneDetected();
 
 	isExternalInterruptMotionDetect();
 
@@ -354,7 +355,7 @@ void loop()
 
 	if (!(_isOnMotionDetect))
 	{
-		pirSensorActivity();
+		openGarageDoorWithPhone();
 	}
 }
 
@@ -465,41 +466,41 @@ bool isMyPhoneDetected()
 }
 
 bool isASecondInterrupts = false;
+//
+//unsigned long timeAlarm = 0;
 
-unsigned long timeAlarm = 0;
-
-void resetTimeAlarm()
-{
-	if ((millis() - timeAlarm) > (10UL * 60UL * 1000UL))
-	{
-		isASecondInterrupts = false;
-		timeAlarm = 0;
-	}
-}
+//void resetTimeAlarm()
+//{
+//	if ((millis() - timeAlarm) > (10UL * 60UL * 1000UL))
+//	{
+//		isASecondInterrupts = false;
+//		timeAlarm = 0;
+//	}
+//}
 
 void isExternalInterruptMotionDetect()
 {
 	if ((_isOnMotionDetect && _isAlarmOn) || (_isAlarmOn && _isExternalInterruptOn && !digitalRead(interruptExternalMotionPin))) //&& !isOnConfiguration)									 /*if(true)*/
 	{
-		if (!isASecondInterrupts)
-		{
-			detachInterrupt(0);
-			detachInterrupt(1);
-			isASecondInterrupts = true;
-			//Serial.println(F("step1"));
-			_isOnMotionDetect = false;
-			delay(5000);
-			blinkLed();
-			timeAlarm = millis();
-		}
-		else
-		{
-			detachInterrupt(0);
+		//if (!isASecondInterrupts)
+		//{
+		//	/*detachInterrupt(0);*/
+		//	detachInterrupt(1);
+		//	isASecondInterrupts = true;
+		//	//Serial.println(F("step1"));
+		//	_isOnMotionDetect = false;
+		//	delay(5000);
+		//	blinkLed();
+		//	//timeAlarm = millis();
+		//}
+		//else
+		//{
+		/*	detachInterrupt(0);*/
 			detachInterrupt(1);
 			//Serial.println(F("step2"));
 			_whatIsHappened = F("M");
 			String message = F("M01N");
-			isMyPhoneDetected();
+			//isMyPhoneDetected();
 
 			if (!_isPhoneDeviceDetected)
 			{
@@ -507,9 +508,9 @@ void isExternalInterruptMotionDetect()
 				sendMessageToComunicatorDevice(message);
 			}
 			_isOnMotionDetect = false;
-		}
+		//}
 		EIFR |= 1 << INTF1; //clear external interrupt 1
-		EIFR |= 1 << INTF0; //clear external interrupt 0
+		//EIFR |= 1 << INTF0; //clear external interrupt 0
 		sei();
 		attachInterrupt(1, motionTiltExternalInterrupt, RISING);
 	}
@@ -1118,7 +1119,7 @@ boolean isValidNumber(String str)
 
 unsigned long deltaTimeForOpenTheDoor = 0;
 
-void pirSensorActivity()
+void openGarageDoorWithPhone()
 {
 	if (isGarageDoorClosed() && _doorState == 1)
 	{
@@ -1134,13 +1135,13 @@ void pirSensorActivity()
 			deltaTimeForOpenTheDoor = 0;
 		}
 	}
-	if (_isPIRSensorActivated && _isAlarmOn)
+	if (/*_isPIRSensorActivated &&*/ _isAlarmOn)
 	{
-		if (isThereSomeOneInFrontOfGarage())
-		{
-			//Serial.println("isThereSomeOneInFrontOfGarage");
+	/*	if (isThereSomeOneInFrontOfGarage())
+		{*/
+			/*Serial.println("isThereSomeOneInFrontOfGarage");*/
 
-			isMyPhoneDetected();
+			//isMyPhoneDetected();
 
 			_whatIsHappened = F("P");
 
@@ -1154,21 +1155,21 @@ void pirSensorActivity()
 				reedRelaySensorActivity(relayPin);
 				delay(60000);
 			}
-			else if ((isAM() && hour() < 6) && !_isPhoneDeviceDetected)
+			/*else if ((isAM() && hour() < 6) && !_isPhoneDeviceDetected)
 			{
 				blinkLed();
 				String message = "P01N";
 				sendMessageToComunicatorDevice(message);
-			}
+			}*/
 
-		}
+		//}
 	}
 }
 
-bool isThereSomeOneInFrontOfGarage()
-{
-	return digitalRead(pirSensor2Pin);
-}
+//bool isThereSomeOneInFrontOfGarage()
+//{
+//	return digitalRead(pirSensor2Pin);
+//}
 
 bool isGarageDoorClosed()
 {
