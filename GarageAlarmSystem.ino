@@ -245,9 +245,9 @@ void setup()
 	digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
 
 
-#ifdef _DEBUG
+
 	Serial.println(F("START"));
-#endif // _DEBUG
+
 
 	inizializeInterrupts();
 
