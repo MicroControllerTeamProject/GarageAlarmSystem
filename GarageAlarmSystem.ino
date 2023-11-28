@@ -236,7 +236,7 @@ MyBlueTooth btSerial(&Serial, bluetoothKeyPin, bluetoothTransistorPin, 38400, 96
 
 void setup()
 {
-	//Serial.begin(9600);
+	Serial.begin(9600);
 
 	softwareSerial.begin(9600);
 
@@ -244,15 +244,19 @@ void setup()
 
 	digitalWrite(softwareSerialExternalDevicesPinAlarm, HIGH);
 
-	//Serial.println(F("START"));
+
+#ifdef _DEBUG
+	Serial.println(F("START"));
+#endif // _DEBUG
 
 	inizializeInterrupts();
 
 	btSerial.Reset_To_Slave_Mode();
 
+#ifdef _DEBUG
 	/*_oldPassword = btSerial.GetPasswordV3();
-
 	Serial.print(F("PSW: ")); Serial.println(_oldPassword);*/
+#endif // _DEBUG
 
 	btSerial.ReceveMode();
 
