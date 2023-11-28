@@ -45,13 +45,14 @@ int temp;
 //#include <MemoryFree.h>
 //#include <pgmStrToRAM.h>
 //#include <ChipTemp.h>
-#include "MyBlueTooth.h"
-#include "BlueToothCommandsUtil.h"
-#include "LSGEEpromRW.h" 
+
+#include <MyBlueTooth.h>
+#include <BlueToothCommandsUtil.h>
+#include <LSGEEpromRW.h>
 #include <EEPROM.h> 
 #include <StringFunctions.h>
-#include "MySim900.h"
-#include "ActivityManager.h"
+#include <MySim900.h>
+#include <ActivityManager.h>
 #include <TimeLib.h>
 
 

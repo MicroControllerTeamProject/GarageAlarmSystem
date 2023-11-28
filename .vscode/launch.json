@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": false,
-      "cwd": "/home/luigi/Repo/MicroControllerProjects/GarageAlarmSystem/BasicPortableAlarmSystem",
-      "program": "/home/luigi/Repo/MicroControllerProjects/GarageAlarmSystem/BasicPortableAlarmSystem/build/Debug/outDebug",
+      "cwd": "/home/luigi/Repo/MicroControllerTeamProject/GarageAlarmSystem",
+      "program": "/home/luigi/Repo/MicroControllerTeamProject/GarageAlarmSystem/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

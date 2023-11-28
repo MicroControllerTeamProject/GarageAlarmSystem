@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33516.290
@@ -127,6 +127,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{62142BBE-1833-483D-8F24-5D4523907830} = {62142BBE-1833-483D-8F24-5D4523907830}
 		{20BCCE20-C908-48F6-BD16-AC2749927EDB} = {8AB27E48-E1BF-4462-9648-C192228D4AD8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
