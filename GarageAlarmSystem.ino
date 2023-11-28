@@ -24,6 +24,9 @@ Reviewed on 26/03/2013
 
 */
 
+//for arduino IDE
+//#define _DEBUG 1
+
 //for some MCUs (i.e. the ATmega2560) there's no definition for RAMSTART
 #ifndef RAMSTART
 extern int __data_start;
@@ -255,8 +258,8 @@ void setup()
 	btSerial.Reset_To_Slave_Mode();
 
 #ifdef _DEBUG
-	/*_oldPassword = btSerial.GetPasswordV3();
-	Serial.print(F("PSW: ")); Serial.println(_oldPassword);*/
+	_oldPassword = btSerial.GetPasswordV3();
+	Serial.print(F("PSW: ")); Serial.println(_oldPassword);
 #endif // _DEBUG
 
 	btSerial.ReceveMode();
