@@ -59,9 +59,9 @@ int temp;
 
 char version[15] = "-G01 1.10-alfa";
 
-ActivityManager *_delayForTemperature = new ActivityManager(2 * 60);
+ActivityManager* _delayForTemperature = new ActivityManager(2 * 60);
 
-ActivityManager *_delayForVoltage = new ActivityManager(5 * 60);
+ActivityManager* _delayForVoltage = new ActivityManager(5 * 60);
 
 // ActivityManager* _delayForFindPhone = new ActivityManager(30);
 
@@ -232,12 +232,13 @@ byte _doorState = 0;
 
 MyBlueTooth btSerial(&Serial, bluetoothKeyPin, bluetoothTransistorPin, 38400, 9600);
 
+
+//using in arduino ide enviroment
 #define _DEBUG 
 #define _HARDWARE_CODE
 
 void setup()
 {
-	
 	softwareSerial.begin(9600);
 
 	inizializePins();
@@ -276,16 +277,16 @@ void setup()
 
 void loop()
 {
-	
+
 	while (!_isTimeInitialize)
 	{
 		String receivedMessage = "";
 
 		digitalWrite(softwareSerialExternalDevicesPinAlarm, LOW);
 
-    receivedMessage = getSerialMessageFromExternalDevice();
-  
-		// receivedMessage = "H1700";
+		receivedMessage = getSerialMessageFromExternalDevice();
+
+		// receivedMessage = "H1700";  using for test
 
 		if (receivedMessage.startsWith("H"))
 		{
@@ -347,7 +348,7 @@ void loop()
 
 	// resetTimeAlarm();
 
-  isMyPhoneDetected();
+	isMyPhoneDetected();
 
 	isExternalInterruptMotionDetect();
 
@@ -375,13 +376,13 @@ String getSerialMessageFromExternalDevice()
 
 void initilizeEEPromData()
 {
-	LSG_EEpromRW *eepromRW = new LSG_EEpromRW();
+	LSG_EEpromRW* eepromRW = new LSG_EEpromRW();
 
 #ifdef _HARDWARE_CODE  
-  char hardware_code[4] = {};
-	eepromRW->eeprom_read_string(500, hardware_code,4);
-	Serial.print(F("\r\nhardware_code: "));Serial.println(hardware_code);
- #endif 
+	char hardware_code[4] = {};
+	eepromRW->eeprom_read_string(500, hardware_code, 4);
+	Serial.print(F("\r\nhardware_code: ")); Serial.println(hardware_code);
+#endif 
 
 	eepromRW->eeprom_read_string(_addressStartFindOutPhonesON, _bufFindOutPhonesON, BUFSIZEFINDOUTPHONESON);
 	_findOutPhonesMode = atoi(&_bufFindOutPhonesON[0]);
@@ -479,26 +480,26 @@ void isExternalInterruptMotionDetect()
 {
 	if ((_isOnMotionDetect && _isAlarmOn) || (_isAlarmOn && _isExternalInterruptOn && !digitalRead(interruptExternalMotionPin))) //&& !isOnConfiguration)									 /*if(true)*/
 	{
-			detachInterrupt(1);
+		detachInterrupt(1);
 #ifdef _DEBUG
-			Serial.println(F("motion detect"));
+		Serial.println(F("motion detect"));
 #endif
-			_whatIsHappened = F("M");
-			String message = F("M01N");
-			// isMyPhoneDetected();
+		_whatIsHappened = F("M");
 
-			if (!_isPhoneDeviceDetected)
-			{
-				blinkLed();
-				sendMessageToComunicatorDevice(message);
-			}
-			_isOnMotionDetect = false;
-			//}
-			EIFR |= 1 << INTF1; // clear external interrupt 1
-			// EIFR |= 1 << INTF0; //clear external interrupt 0
-			sei();
-			attachInterrupt(1, motionTiltExternalInterrupt, RISING);
+		String message = F("M01N");
 		
+		if (!_isPhoneDeviceDetected)
+		{
+			blinkLed();
+			sendMessageToComunicatorDevice(message);
+		}
+		_isOnMotionDetect = false;
+		//}
+		EIFR |= 1 << INTF1; // clear external interrupt 1
+		// EIFR |= 1 << INTF0; //clear external interrupt 0
+		sei();
+		attachInterrupt(1, motionTiltExternalInterrupt, RISING);
+
 	}
 }
 
@@ -539,7 +540,7 @@ void blinkLed()
 String splitStringIndex(String data, char separator, int index)
 {
 	int found = 0;
-	int strIndex[] = {0, -1};
+	int strIndex[] = { 0, -1 };
 	int maxIndex = data.length() - 1;
 
 	for (int i = 0; i <= maxIndex && found <= index; i++)
@@ -571,7 +572,7 @@ String calculateBatteryLevel(float batteryLevel)
 
 void loadMainMenu()
 {
-	char *alarmStatus = new char[15];
+	char* alarmStatus = new char[15];
 
 	if (_isAlarmOn)
 	{
@@ -689,7 +690,7 @@ void loadConfigurationMenu()
 
 void blueToothConfigurationSystem()
 {
-	LSG_EEpromRW *eepromRW = new LSG_EEpromRW();
+	LSG_EEpromRW* eepromRW = new LSG_EEpromRW();
 	String _bluetoothData = "";
 	if (btSerial.available())
 	{
@@ -1115,9 +1116,9 @@ void openGarageDoorWithPhone()
 	{
 		/*	if (isThereSomeOneInFrontOfGarage())
 			{*/
-		/*Serial.println("isThereSomeOneInFrontOfGarage");*/
+			/*Serial.println("isThereSomeOneInFrontOfGarage");*/
 
-		// isMyPhoneDetected();
+			// isMyPhoneDetected();
 
 		_whatIsHappened = F("P");
 
